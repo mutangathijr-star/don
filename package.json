@@ -1,0 +1,10 @@
+{
+  "name": "simba-hardware-hub",
+  "version": "1.0.0",
+  "description": "High-fidelity dual-view hardware store management system prototype.",
+  "scripts": {
+    "dev": "npx --yes http-server -p 8080"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

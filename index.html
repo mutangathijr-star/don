@@ -257,14 +257,36 @@
 
         <!-- ================= STAFF TERMINAL ================= -->
         <section id="staff-terminal" class="portal-view hidden">
-            <div class="staff-layout">
+            <!-- Password Login Gate screen -->
+            <div id="staff-login-screen" class="login-wrapper">
+                <div class="card-panel login-card" style="max-width: 400px; margin: 80px auto; text-align: center;">
+                    <div style="margin-bottom: 20px;">
+                        <i class="fa-solid fa-lock" style="font-size: 3rem; color: var(--accent);"></i>
+                    </div>
+                    <h3>Staff Authentication Required</h3>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:20px;">Enter security PIN to access POS billing, inventory edits, and reports.</p>
+                    <form onsubmit="handleStaffLogin(event)">
+                        <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+                            <label for="staff-pin-input">Access PIN</label>
+                            <input type="password" id="staff-pin-input" required placeholder="Enter PIN (Default: 1234)">
+                        </div>
+                        <button type="submit" class="btn-primary block-btn">Unlock Terminal</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Staff Layout -->
+            <div class="staff-layout hidden" id="staff-main-layout">
                 <!-- Staff Navigation Sidebar -->
                 <aside class="staff-sidebar">
                     <div class="staff-profile">
                         <i class="fa-solid fa-user-tie staff-avatar"></i>
                         <div>
                             <h5>Admin Cashier</h5>
-                            <span>Store Manager</span>
+                            <span style="display:block; margin-bottom:4px; font-size:0.75rem;">Store Manager</span>
+                            <button onclick="handleStaffLogout()" class="btn-secondary" style="padding: 2px 8px; font-size: 0.7rem; color: var(--red); border-color: var(--red-bg); display:flex; align-items:center; gap:4px;">
+                                <i class="fa-solid fa-lock"></i> Lock Screen
+                            </button>
                         </div>
                     </div>
                     <nav class="staff-nav-menu">
@@ -647,6 +669,10 @@
                             <label for="prod-reorder">Reorder Level Alert</label>
                             <input type="number" id="prod-reorder" required min="0" placeholder="e.g. 5">
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="prod-image-url">Product Image URL (Optional)</label>
+                        <input type="text" id="prod-image-url" placeholder="e.g. assets/cement.jpg or web link">
                     </div>
                     <button type="submit" class="btn-primary block-btn">Create Product</button>
                 </form>

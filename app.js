@@ -108,6 +108,8 @@ logStockChange("STL-003", "Binding Wire 25kg (G16)", -2, "Water damage write-off
 logStockChange("TOL-001", "Stanley Claw Hammer 16oz", -1, "POS In-store sale", "Cashier T1");
 
 // 2. VIEW CONTROLLER (Navigation & Tabs)
+let isStaffAuthenticated = false;
+
 function switchView(viewName) {
     activeView = viewName;
     const custPortal = document.getElementById("customer-portal");
@@ -127,7 +129,16 @@ function switchView(viewName) {
         btnCust.classList.remove("active");
         btnStaff.classList.add("active");
         
-        switchStaffTab(activeStaffTab);
+        const loginScreen = document.getElementById("staff-login-screen");
+        const mainLayout = document.getElementById("staff-main-layout");
+        if (isStaffAuthenticated) {
+            loginScreen.classList.add("hidden");
+            mainLayout.classList.remove("hidden");
+            switchStaffTab(activeStaffTab);
+        } else {
+            loginScreen.classList.remove("hidden");
+            mainLayout.classList.add("hidden");
+        }
     }
 }
 
@@ -244,11 +255,14 @@ function renderCustomerCatalog() {
         gridContainer.innerHTML = filteredProducts.map(prod => {
             const isOutOfStock = prod.stockQty <= 0;
             const iconClass = getCategoryIcon(prod.category);
+            const visualHtml = prod.imageUrl 
+                ? `<img src="${prod.imageUrl}" alt="${prod.name}" style="max-height: 100%; max-width: 100%; object-fit: contain; border-radius: 8px;">`
+                : `<i class="${iconClass}"></i>`;
             return `
                 <div class="product-card">
                     ${getStockBadge(prod.stockQty, prod.reorderLevel)}
                     <div class="prod-visual-img">
-                        <i class="${iconClass}"></i>
+                        ${visualHtml}
                     </div>
                     <div class="prod-category-tag">${prod.category}</div>
                     <h4>${prod.name}</h4>
@@ -983,10 +997,46 @@ function renderInventoryTable() {
                 <td>
                     <button class="btn-secondary" style="padding:2px 8px; font-size:0.75rem;" 
                             onclick="openAdjustStockModal('${prod.sku}')">Adjust</button>
+                    <button class="btn-secondary" style="padding:2px 8px; font-size:0.75rem; color:var(--red); border-color:var(--red-bg);" 
+                            onclick="deleteProduct('${prod.sku}')">Delete</button>
                 </td>
             </tr>
         `;
     }).join('');
+}
+
+function handleStaffLogin(e) {
+    e.preventDefault();
+    const pinVal = document.getElementById("staff-pin-input").value;
+    if (pinVal === "1234" || pinVal === "admin123") {
+        isStaffAuthenticated = true;
+        document.getElementById("staff-pin-input").value = "";
+        document.getElementById("staff-login-screen").classList.add("hidden");
+        document.getElementById("staff-main-layout").classList.remove("hidden");
+        switchStaffTab(activeStaffTab);
+    } else {
+        alert("Incorrect PIN. Access Denied!");
+    }
+}
+
+function handleStaffLogout() {
+    isStaffAuthenticated = false;
+    document.getElementById("staff-login-screen").classList.remove("hidden");
+    document.getElementById("staff-main-layout").classList.add("hidden");
+}
+
+function deleteProduct(sku) {
+    const prod = getProductBySku(sku);
+    if (!prod) return;
+    if (!confirm(`Are you sure you want to delete "${prod.name}" (SKU: ${sku})? This will remove it from inventory.`)) return;
+
+    products = products.filter(p => p.sku !== sku);
+    logStockChange(sku, prod.name, -prod.stockQty, "Product deleted from database", "Store Manager");
+    
+    renderInventoryTable();
+    renderCustomerCatalog();
+    renderPOSCatalog();
+    alert(`Product "${prod.name}" successfully deleted.`);
 }
 
 function renderStockLogsTable() {
@@ -1037,6 +1087,7 @@ function submitAddProduct(e) {
     const sale = Number(document.getElementById("prod-selling").value);
     const stock = Number(document.getElementById("prod-stock").value);
     const reorder = Number(document.getElementById("prod-reorder").value);
+    const imageUrl = document.getElementById("prod-image-url").value.trim();
 
     // Make custom SKU
     const prefix = cat.substring(0, 3).toUpperCase();
@@ -1051,7 +1102,8 @@ function submitAddProduct(e) {
         costPrice: cost,
         salePrice: sale,
         stockQty: stock,
-        reorderLevel: reorder
+        reorderLevel: reorder,
+        imageUrl: imageUrl || ""
     };
 
     products.push(newProd);

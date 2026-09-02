@@ -514,7 +514,7 @@ body.light-mode .promo-info h2 {
     color: var(--accent);
 }
 
-/* 6. PRODUCT CARDS & GRID */
+/* PRODUCT CARDS & GRID */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -657,7 +657,7 @@ body.light-mode .promo-info h2 {
     transform: none;
 }
 
-/* 7. CARD PANELS & FORMS */
+/* CARD PANELS & FORMS */
 .card-panel {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -709,7 +709,7 @@ label {
     letter-spacing: 0.05em;
 }
 
-input[type="text"], input[type="tel"], input[type="number"], select, textarea {
+input[type="text"], input[type="tel"], input[type="number"], input[type="password"], select, textarea {
     background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
@@ -761,6 +761,54 @@ input:focus, select:focus, textarea:focus {
 .block-btn {
     width: 100%;
     margin-top: 10px;
+}
+
+/* Delivery Details Drawer Box */
+.delivery-details-box {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.delivery-details-box .form-group {
+    margin-bottom: 0;
+}
+
+.delivery-details-box input, .delivery-details-box select {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+}
+
+/* Category Manager list */
+.category-manager-list {
+    list-style: none;
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.category-manager-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: var(--bg-primary);
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.category-manager-list .delete-cat-btn {
+    color: var(--red);
+    cursor: pointer;
+    font-size: 0.85rem;
 }
 
 /* Quote Request form adjustments */
@@ -820,9 +868,8 @@ input:focus, select:focus, textarea:focus {
     border: none !important;
 }
 
-/* 8. SHOPPING CART DRAWER */
+/* SHOPPING CART DRAWER */
 .cart-drawer {
-    width: var(--sidebar-width);
     width: 360px;
     background-color: var(--bg-secondary);
     border-left: 1px solid var(--border-color);
@@ -1013,7 +1060,7 @@ input:focus, select:focus, textarea:focus {
     font-weight: 700;
 }
 
-/* 9. MOCK GOOGLE MAP EMBED */
+/* MOCK MAP EMBED */
 .grid-2col {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1042,28 +1089,6 @@ input:focus, select:focus, textarea:focus {
     background-size: 20px 20px;
 }
 
-.mock-map::before {
-    content: '';
-    position: absolute;
-    top: 40%;
-    left: -20%;
-    width: 140%;
-    height: 12px;
-    background-color: rgba(255,255,255,0.07);
-    transform: rotate(25deg);
-}
-
-.mock-map::after {
-    content: '';
-    position: absolute;
-    left: 45%;
-    top: -20%;
-    width: 15px;
-    height: 140%;
-    background-color: rgba(255,255,255,0.07);
-    transform: rotate(-15deg);
-}
-
 .map-marker-icon {
     position: absolute;
     top: 48%;
@@ -1086,17 +1111,6 @@ input:focus, select:focus, textarea:focus {
     border-radius: 50%;
     z-index: 2;
     animation: glowExpand 1.5s infinite;
-}
-
-@keyframes glowExpand {
-    0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
-}
-
-@keyframes markerPulse {
-    0% { transform: translate(-50%, -50%) translateY(0); }
-    50% { transform: translate(-50%, -50%) translateY(-6px); }
-    100% { transform: translate(-50%, -50%) translateY(0); }
 }
 
 .map-label {
@@ -1124,7 +1138,7 @@ input:focus, select:focus, textarea:focus {
     font-family: monospace;
 }
 
-/* 10. TABLES */
+/* TABLES & DATA GRIDS */
 .table-responsive {
     width: 100%;
     overflow-x: auto;
@@ -1172,20 +1186,7 @@ input:focus, select:focus, textarea:focus {
     width: 200px;
 }
 
-/* Logs audit styles */
-.log-table {
-    font-size: 0.85rem;
-}
-
-.log-table td {
-    padding: 8px 16px;
-}
-
-.log-table th {
-    padding: 8px 16px;
-}
-
-/* 11. STAFF TERMINAL LAYOUT */
+/* STAFF TERMINAL LAYOUT */
 .staff-layout {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr;
@@ -1222,16 +1223,6 @@ input:focus, select:focus, textarea:focus {
     border: 1px solid var(--border-color);
 }
 
-.staff-profile h5 {
-    font-size: 0.95rem;
-    font-weight: 600;
-}
-
-.staff-profile span {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
 .staff-nav-menu {
     display: flex;
     flex-direction: column;
@@ -1262,17 +1253,6 @@ input:focus, select:focus, textarea:focus {
     background-color: var(--accent-glow);
 }
 
-.staff-nav-item.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 8px;
-    bottom: 8px;
-    width: 4px;
-    background-color: var(--accent);
-    border-radius: 2px;
-}
-
 .count-badge {
     position: absolute;
     right: 12px;
@@ -1289,7 +1269,7 @@ input:focus, select:focus, textarea:focus {
     overflow-y: auto;
 }
 
-/* POS Workspace specifics */
+/* POS Workspace */
 .pos-workspace {
     display: grid;
     grid-template-columns: 1fr 340px;
@@ -1337,36 +1317,6 @@ input:focus, select:focus, textarea:focus {
     transform: translateY(-2px);
 }
 
-.pos-item-card h5 {
-    font-size: 0.85rem;
-    font-weight: 600;
-    line-height: 1.3;
-    margin-bottom: 6px;
-    flex: 1;
-}
-
-.pos-item-sku {
-    font-size: 0.7rem;
-    font-family: monospace;
-    color: var(--text-muted);
-}
-
-.pos-item-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-}
-
-.pos-item-price {
-    font-size: 0.9rem;
-    font-weight: 700;
-}
-
-.pos-item-stock {
-    font-size: 0.75rem;
-}
-
 .pos-cart-panel {
     display: flex;
     flex-direction: column;
@@ -1393,37 +1343,6 @@ input:focus, select:focus, textarea:focus {
     border-radius: 6px;
 }
 
-.pos-cart-item h6 {
-    font-size: 0.8rem;
-    font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.pos-cart-item .item-cost {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-}
-
-.pos-cart-qty-input {
-    width: 50px;
-    padding: 4px;
-    text-align: center;
-    font-size: 0.8rem;
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    border-radius: 4px;
-}
-
-.pos-cart-item-remove {
-    color: var(--red);
-    cursor: pointer;
-    font-size: 0.8rem;
-    padding: 4px;
-}
-
 .empty-pos-msg {
     display: flex;
     flex-direction: column;
@@ -1436,37 +1355,7 @@ input:focus, select:focus, textarea:focus {
     gap: 10px;
 }
 
-.empty-pos-msg i {
-    font-size: 2.5rem;
-}
-
-.pos-billing-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.pos-payment-details {
-    border-top: 1px dashed var(--border-color);
-    padding-top: 8px;
-    margin-top: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.pos-payment-details select {
-    padding: 6px 10px;
-    font-size: 0.85rem;
-}
-
-.pos-mpesa-detail input {
-    width: 100%;
-    font-size: 0.85rem;
-    padding: 6px 10px;
-}
-
-/* 12. QUOTATION MANAGER */
+/* QUOTATION MANAGER */
 .quotes-layout {
     display: grid;
     grid-template-columns: 320px 1fr;
@@ -1500,30 +1389,12 @@ input:focus, select:focus, textarea:focus {
     transition: var(--transition);
 }
 
-.quote-inbox-card:hover {
-    border-color: var(--accent);
-}
-
 .quote-inbox-card.active {
     border-color: var(--accent);
     background-color: var(--accent-glow);
 }
 
-.quote-inbox-card h5 {
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.quote-inbox-card p {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin-top: 4px;
-}
-
-.quote-inbox-card .quote-status-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
+.quote-status-badge {
     font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -1535,76 +1406,7 @@ input:focus, select:focus, textarea:focus {
 .status-approved { background-color: var(--green-bg); color: var(--green); }
 .status-converted { background-color: var(--blue-bg); color: var(--blue); }
 
-.quote-review-panel {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow-y: auto;
-}
-
-.empty-quote-msg {
-    text-align: center;
-    color: var(--text-muted);
-}
-
-.empty-quote-msg i {
-    font-size: 3.5rem;
-    margin-bottom: 10px;
-}
-
-.quote-review-header {
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 12px;
-    margin-bottom: 15px;
-}
-
-.quote-review-header h4 {
-    font-size: 1.25rem;
-}
-
-.quote-review-header p {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-}
-
-.quote-review-items-table {
-    width: 100%;
-    margin-bottom: 15px;
-    border-collapse: collapse;
-}
-
-.quote-review-items-table th, .quote-review-items-table td {
-    padding: 8px;
-    border-bottom: 1px solid var(--border-color);
-    text-align: left;
-    font-size: 0.85rem;
-}
-
-.quote-review-items-table th {
-    color: var(--text-secondary);
-}
-
-.quote-review-items-table input[type="number"] {
-    width: 90px;
-    padding: 4px 8px;
-    font-size: 0.85rem;
-}
-
-.quote-price-summary-box {
-    margin-top: 15px;
-    background-color: var(--bg-primary);
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px dashed var(--border-color);
-}
-
-.quote-action-bar {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-/* 13. REPORTING & DASHBOARD VISUALS */
+/* REPORTING & DASHBOARD VISUALS */
 .stat-cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1632,106 +1434,7 @@ input:focus, select:focus, textarea:focus {
     font-size: 1.3rem;
 }
 
-.stat-info h5 {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.stat-info h3 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin: 2px 0;
-}
-
-.stat-delta {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-/* Simulated graphical bar charts using CSS Flex */
-.bar-chart-container {
-    height: 180px;
-    display: flex;
-    align-items: flex-end;
-    padding-top: 20px;
-}
-
-.bar-chart {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 12px;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 8px;
-}
-
-.chart-bar-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-    justify-content: flex-end;
-}
-
-.chart-bar {
-    width: 100%;
-    max-width: 32px;
-    background-color: rgba(249, 115, 22, 0.3);
-    border-radius: 4px 4px 0 0;
-    transition: height 0.6s ease;
-    cursor: pointer;
-}
-
-.chart-bar:hover {
-    background-color: var(--accent);
-}
-
-.chart-bar.active {
-    background-color: var(--accent);
-    filter: drop-shadow(0 0 6px var(--accent-glow));
-}
-
-.chart-label {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    margin-top: 6px;
-}
-
-.best-sellers-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.best-seller-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background-color: var(--bg-primary);
-    border-radius: 6px;
-    font-size: 0.85rem;
-}
-
-.best-seller-item strong {
-    font-weight: 600;
-}
-
-.best-seller-item .qty-badge {
-    background-color: var(--green-bg);
-    color: var(--green);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-/* 14. MODALS & POPUPS SYSTEM */
+/* MODALS SYSTEM */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -1760,24 +1463,12 @@ input:focus, select:focus, textarea:focus {
     max-width: 400px;
 }
 
-@keyframes scaleUp {
-    from { transform: scale(0.9); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
 .modal-header {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.modal-header h3 {
-    font-size: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
 .close-modal-btn {
@@ -1787,50 +1478,6 @@ input:focus, select:focus, textarea:focus {
 
 .modal-body {
     padding: 1.5rem;
-}
-
-.modal-body p {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 1.25rem;
-}
-
-.whatsapp-shortcut {
-    border-top: 1px solid var(--border-color);
-    margin-top: 15px;
-    padding-top: 12px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.whatsapp-shortcut p {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin: 0;
-}
-
-.whatsapp-link-btn {
-    background-color: #25d366;
-    color: white;
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    font-size: 0.85rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.whatsapp-link-btn:hover {
-    background-color: #20ba5a;
-}
-
-.current-stock-stat {
-    margin-bottom: 12px;
-    font-size: 0.9rem;
 }
 
 /* Receipt Modal Styles */
@@ -1850,95 +1497,6 @@ input:focus, select:focus, textarea:focus {
     font-size: 0.85rem;
 }
 
-.receipt-paper h4 {
-    font-family: 'Courier New', Courier, monospace;
-    text-align: center;
-    font-size: 1.1rem;
-    font-weight: 700;
-}
-
-.receipt-paper p {
-    font-family: 'Courier New', Courier, monospace;
-    color: #444;
-    text-align: center;
-    margin-bottom: 8px;
-    font-size: 0.75rem;
-}
-
-.receipt-paper .divider {
-    border-top: 1px dashed #666;
-    margin: 10px 0;
-}
-
-.receipt-metadata {
-    font-size: 0.75rem;
-    margin-bottom: 10px;
-}
-
-.receipt-table {
-    width: 100%;
-    font-size: 0.75rem;
-    border-collapse: collapse;
-}
-
-.receipt-table th, .receipt-table td {
-    padding: 4px 0;
-    text-align: left;
-}
-
-.receipt-table th {
-    border-bottom: 1px dashed #666;
-}
-
-.receipt-table td.align-right, .receipt-table th.align-right {
-    text-align: right;
-}
-
-.receipt-totals {
-    margin-top: 10px;
-    font-size: 0.8rem;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.receipt-totals .totals-row {
-    display: flex;
-    justify-content: space-between;
-}
-
-.receipt-totals .total-highlight {
-    font-weight: 700;
-    font-size: 0.95rem;
-    border-top: 1px dashed #444;
-    padding-top: 4px;
-}
-
-.receipt-barcode {
-    text-align: center;
-    margin-top: 15px;
-    opacity: 0.7;
-}
-
-.receipt-barcode i {
-    font-size: 3rem;
-}
-
-.receipt-barcode span {
-    display: block;
-    font-size: 0.65rem;
-    letter-spacing: 0.3em;
-    margin-top: 4px;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 1.25rem;
-}
-
-/* Floating Whatsapp chat badge */
 .floating-helpline {
     position: fixed;
     bottom: 24px;
@@ -1961,97 +1519,4 @@ input:focus, select:focus, textarea:focus {
 .floating-helpline:hover {
     background-color: #20ba5a;
     transform: translateY(-3px);
-}
-
-.whatsapp-icon {
-    font-size: 1.2rem;
-}
-
-/* 15. PRINT MEDIA OVERRIDES */
-@media print {
-    .no-print {
-        display: none !important;
-    }
-    body {
-        background-color: white !important;
-        color: black !important;
-    }
-    .modal-overlay {
-        position: absolute;
-        background-color: transparent;
-        backdrop-filter: none;
-    }
-    .modal-box {
-        border: none;
-        box-shadow: none;
-        width: 100%;
-        max-width: 100%;
-    }
-    .receipt-paper {
-        border: none;
-        box-shadow: none;
-        padding: 0;
-    }
-}
-
-/* 16. RESPONSIVENESS */
-@media (max-width: 992px) {
-    .staff-layout {
-        grid-template-columns: 1fr;
-    }
-    .staff-sidebar {
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-    }
-    .pos-workspace {
-        grid-template-columns: 1fr;
-        height: auto;
-    }
-    .pos-cart-panel {
-        height: auto;
-    }
-    .grid-2col {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .portal-nav {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        padding: 10px;
-    }
-    .nav-search {
-        max-width: 100%;
-    }
-    .nav-links {
-        justify-content: center;
-        gap: 10px;
-    }
-    .nav-actions {
-        justify-content: center;
-    }
-    .hero-promo {
-        flex-direction: column;
-        text-align: center;
-        padding: 1.5rem;
-    }
-    .promo-info {
-        max-width: 100%;
-    }
-    .promo-visual {
-        display: none;
-    }
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-    .app-banner {
-        padding: 0 1rem;
-    }
-    .banner-brand span {
-        display: none;
-    }
-    .quotes-layout {
-        grid-template-columns: 1fr;
-    }
 }

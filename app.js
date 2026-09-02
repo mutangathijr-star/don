@@ -1,36 +1,22 @@
 /* ==========================================================================
-   Simba Hardware Hub — Core State & UI Controller
+   Simba Hardware Hub — Core State & Dual-Mode Controller
    ========================================================================== */
 
-// 1. SEED DATA & IN-MEMORY STATE
+// 1. SEED DATA & DUAL-MODE API ENGINE
+const API_BASE_URL = "http://localhost:8080/api";
+let isApiOnline = false;
+
+const INITIAL_CATEGORIES = ["Cement", "Steel", "Paint", "Tools", "Electricals", "Plumbing", "Building Materials"];
+
 const INITIAL_PRODUCTS = [
-    // Cement
-    { sku: "CEM-001", name: "Bamburi Tembo Cement (32.5N)", category: "Cement", unit: "Bags", costPrice: 650, salePrice: 790, stockQty: 120, reorderLevel: 20 },
-    { sku: "CEM-002", name: "Savannah Portland Cement (42.5R)", category: "Cement", unit: "Bags", costPrice: 720, salePrice: 850, stockQty: 12, reorderLevel: 15 }, // low stock
-    
-    // Steel
-    { sku: "STL-001", name: "Reinforcement Steel Bar D12 (12mm)", category: "Steel", unit: "Pieces", costPrice: 1100, salePrice: 1450, stockQty: 85, reorderLevel: 15 },
-    { sku: "STL-002", name: "Reinforcement Steel Bar D10 (10mm)", category: "Steel", unit: "Pieces", costPrice: 780, salePrice: 980, stockQty: 110, reorderLevel: 20 },
-    { sku: "STL-003", name: "Binding Wire 25kg (G16)", category: "Steel", unit: "Rolls", costPrice: 2800, salePrice: 3500, stockQty: 0, reorderLevel: 5 }, // out of stock
-
-    // Paint
-    { sku: "PNT-001", name: "Crown Paints Vinyl Matt White (20L)", category: "Paint", unit: "Tins", costPrice: 7500, salePrice: 8900, stockQty: 25, reorderLevel: 5 },
-    { sku: "PNT-002", name: "Crown Paints Silk Emulsion Cream (4L)", category: "Paint", unit: "Tins", costPrice: 2200, salePrice: 2800, stockQty: 40, reorderLevel: 8 },
-    { sku: "PNT-003", name: "Crown Solignum Wood Preservative (5L)", category: "Paint", unit: "Tins", costPrice: 1800, salePrice: 2250, stockQty: 18, reorderLevel: 4 },
-
-    // Tools
-    { sku: "TOL-001", name: "Stanley Claw Hammer 16oz", category: "Tools", unit: "Pieces", costPrice: 850, salePrice: 1200, stockQty: 30, reorderLevel: 5 },
-    { sku: "TOL-002", name: "Bosch Angle Grinder GWS 750", category: "Tools", unit: "Pieces", costPrice: 5200, salePrice: 6800, stockQty: 8, reorderLevel: 3 },
-    { sku: "TOL-003", name: "Tolsen Tape Measure 8M/26ft", category: "Tools", unit: "Pieces", costPrice: 320, salePrice: 480, stockQty: 65, reorderLevel: 10 },
-
-    // Electricals
-    { sku: "ELC-001", name: "East African Cables Single Core 1.5mm (Red)", category: "Electricals", unit: "Rolls", costPrice: 2800, salePrice: 3400, stockQty: 50, reorderLevel: 8 },
-    { sku: "ELC-002", name: "East African Cables Single Core 2.5mm (Blue)", category: "Electricals", unit: "Rolls", costPrice: 4200, salePrice: 5100, stockQty: 3, reorderLevel: 8 }, // low stock
-    { sku: "ELC-003", name: "Philips LED Bulb Cool Daylight E27 12W", category: "Electricals", unit: "Pieces", costPrice: 210, salePrice: 320, stockQty: 140, reorderLevel: 15 },
-
-    // Plumbing
-    { sku: "PLM-001", name: "PPR Pipe PN20 (20mm x 4M)", category: "Plumbing", unit: "Pieces", costPrice: 250, salePrice: 380, stockQty: 200, reorderLevel: 30 },
-    { sku: "PLM-002", name: "Pegler Brass Gate Valve 3/4\"", category: "Plumbing", unit: "Pieces", costPrice: 1200, salePrice: 1650, stockQty: 18, reorderLevel: 5 }
+    { sku: "CEM-001", name: "Bamburi Tembo Cement (32.5N)", category: "Cement", unit: "Bags", costPrice: 650, salePrice: 790, stockQty: 120, reorderLevel: 20, imageUrl: "" },
+    { sku: "CEM-002", name: "Savannah Portland Cement (42.5R)", category: "Cement", unit: "Bags", costPrice: 720, salePrice: 850, stockQty: 12, reorderLevel: 15, imageUrl: "" },
+    { sku: "STL-001", name: "Reinforcement Steel Bar D12 (12mm)", category: "Steel", unit: "Pieces", costPrice: 1100, salePrice: 1450, stockQty: 85, reorderLevel: 15, imageUrl: "" },
+    { sku: "STL-002", name: "Reinforcement Steel Bar D10 (10mm)", category: "Steel", unit: "Pieces", costPrice: 780, salePrice: 980, stockQty: 110, reorderLevel: 20, imageUrl: "" },
+    { sku: "PNT-001", name: "Crown Paints Vinyl Matt White (20L)", category: "Paint", unit: "Tins", costPrice: 7500, salePrice: 8900, stockQty: 25, reorderLevel: 5, imageUrl: "" },
+    { sku: "TOL-001", name: "Stanley Claw Hammer 16oz", category: "Tools", unit: "Pieces", costPrice: 850, salePrice: 1200, stockQty: 30, reorderLevel: 5, imageUrl: "" },
+    { sku: "ELC-001", name: "East African Cables Single Core 1.5mm", category: "Electricals", unit: "Rolls", costPrice: 2800, salePrice: 3400, stockQty: 50, reorderLevel: 8, imageUrl: "" },
+    { sku: "PLM-001", name: "PPR Pipe PN20 (20mm x 4M)", category: "Plumbing", unit: "Pieces", costPrice: 250, salePrice: 380, stockQty: 200, reorderLevel: 30, imageUrl: "" }
 ];
 
 const INITIAL_QUOTATIONS = [
@@ -56,60 +42,76 @@ const INITIAL_QUOTATIONS = [
         status: "approved",
         description: "Paint and Wood preservative for a residential home fence renovation.",
         items: [
-            { sku: "PNT-001", name: "Crown Paints Vinyl Matt White (20L)", qty: 4, requestedPrice: 8900, quotedPrice: 8500 },
-            { sku: "PNT-003", name: "Crown Solignum Wood Preservative (5L)", qty: 6, requestedPrice: 2250, quotedPrice: 2100 }
+            { sku: "PNT-001", name: "Crown Paints Vinyl Matt White (20L)", qty: 4, requestedPrice: 8900, quotedPrice: 8500 }
         ],
-        quotedPrice: 46600,
-        validUntil: "2026-09-03"
+        quotedPrice: 34000,
+        validUntil: "2026-09-30"
     }
 ];
 
 const INITIAL_CALLBACKS = [
-    { id: "CB-001", name: "Peter Mwangi", phone: "0725999888", query: "Need advice on pipe size for plumbing connection in Ruiru", status: "pending", timestamp: "2026-08-06 10:20" },
-    { id: "CB-002", name: "Alice Chebet", phone: "0712333444", query: "Bulk purchase inquiry for Stanley Claw Hammers", status: "completed", timestamp: "2026-08-05 14:15" }
+    { id: "CB-001", name: "Peter Mwangi", phone: "0725999888", query: "Need advice on pipe size for plumbing connection in Ruiru", status: "pending", timestamp: "2026-08-06 10:20" }
 ];
 
 const INITIAL_ORDERS = [
-    { id: "ORD-7001", date: "2026-08-06", items: "CEM-001 (x5)", type: "Pickup", total: 3950, status: "Ready" },
-    { id: "ORD-6988", date: "2026-08-05", items: "PNT-002 (x2), TOL-003 (x1)", type: "Delivery", total: 7280, status: "Completed" }
+    { id: "ORD-7001", date: "2026-08-06", customerName: "John Kamau", phone: "0712345678", items: "CEM-001 (x5)", type: "Pickup", deliveryArea: "", total: 3950, status: "Ready", paymentMethod: "M-Pesa" },
+    { id: "ORD-6988", date: "2026-08-05", customerName: "Sarah Wambui", phone: "0722000000", items: "PNT-001 (x1)", type: "Delivery", deliveryArea: "Westlands", total: 9700, status: "Completed", paymentMethod: "Card" }
 ];
 
-// App Variables
-let products = [...INITIAL_PRODUCTS];
-let quotations = [...INITIAL_QUOTATIONS];
-let callbacks = [...INITIAL_CALLBACKS];
-let orders = [...INITIAL_ORDERS];
-let stockLogs = [];
+// App Memory State
+let categories = loadState('simba_categories', INITIAL_CATEGORIES);
+let products = loadState('simba_products', INITIAL_PRODUCTS);
+let quotations = loadState('simba_quotations', INITIAL_QUOTATIONS);
+let callbacks = loadState('simba_callbacks', INITIAL_CALLBACKS);
+let orders = loadState('simba_orders', INITIAL_ORDERS);
+let stockLogs = loadState('simba_stock_logs', [
+    { timestamp: "2026-08-06 10:00:00", skuName: "[CEM-001] Bamburi Tembo Cement", changeQty: 50, direction: "IN", reason: "Restock replenishment", user: "Store Manager" }
+]);
 
-let customerCart = []; // { sku, qty }
-let posCart = []; // { sku, qty }
+let customerCart = [];
+let posCart = [];
 let selectedPayMethod = "mpesa";
 let activeView = "customer";
 let activeStaffTab = "pos";
 let selectedQuoteId = null;
+let isStaffAuthenticated = false;
+
+// LocalStorage helpers
+function loadState(key, defaultVal) {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : defaultVal;
+}
+
+function saveState(key, val) {
+    localStorage.setItem(key, JSON.stringify(val));
+}
+
+function syncAllState() {
+    saveState('simba_categories', categories);
+    saveState('simba_products', products);
+    saveState('simba_quotations', quotations);
+    saveState('simba_callbacks', callbacks);
+    saveState('simba_orders', orders);
+    saveState('simba_stock_logs', stockLogs);
+}
 
 // Audit Trail Tracker
 function logStockChange(sku, name, changeQty, reason, user = "System") {
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
     const direction = changeQty > 0 ? "IN" : "OUT";
-    stockLogs.unshift({
+    const logItem = {
         timestamp,
         skuName: `[${sku}] ${name}`,
         changeQty: Math.abs(changeQty),
         direction,
         reason,
         user
-    });
+    };
+    stockLogs.unshift(logItem);
+    syncAllState();
 }
 
-// Seed initial stock logs for audit history demo
-logStockChange("CEM-001", "Bamburi Tembo Cement (32.5N)", 50, "Restock replenishment", "Store Manager");
-logStockChange("STL-003", "Binding Wire 25kg (G16)", -2, "Water damage write-off", "Store Manager");
-logStockChange("TOL-001", "Stanley Claw Hammer 16oz", -1, "POS In-store sale", "Cashier T1");
-
 // 2. VIEW CONTROLLER (Navigation & Tabs)
-let isStaffAuthenticated = false;
-
 function switchView(viewName) {
     activeView = viewName;
     const custPortal = document.getElementById("customer-portal");
@@ -123,6 +125,8 @@ function switchView(viewName) {
         btnCust.classList.add("active");
         btnStaff.classList.remove("active");
         renderCustomerCatalog();
+        renderCustomerQuotesTracker();
+        renderCustomerOrdersTracker();
     } else {
         custPortal.classList.add("hidden");
         staffTerminal.classList.remove("hidden");
@@ -142,31 +146,43 @@ function switchView(viewName) {
     }
 }
 
+function handleStaffLogin(e) {
+    e.preventDefault();
+    const pinVal = document.getElementById("staff-pin-input").value;
+    if (pinVal === "1234" || pinVal === "admin123") {
+        isStaffAuthenticated = true;
+        document.getElementById("staff-pin-input").value = "";
+        document.getElementById("staff-login-screen").classList.add("hidden");
+        document.getElementById("staff-main-layout").classList.remove("hidden");
+        switchStaffTab(activeStaffTab);
+    } else {
+        alert("Incorrect PIN. Access Denied!");
+    }
+}
+
+function handleStaffLogout() {
+    isStaffAuthenticated = false;
+    document.getElementById("staff-login-screen").classList.remove("hidden");
+    document.getElementById("staff-main-layout").classList.add("hidden");
+}
+
 function switchStaffTab(tabName) {
     activeStaffTab = tabName;
     
-    // Hide all tabs
-    document.querySelectorAll(".staff-tab-panel").forEach(panel => {
-        panel.classList.add("hidden");
-    });
-    document.querySelectorAll(".staff-nav-item").forEach(item => {
-        item.classList.remove("active");
-    });
+    document.querySelectorAll(".staff-tab-panel").forEach(panel => panel.classList.add("hidden"));
+    document.querySelectorAll(".staff-nav-item").forEach(item => item.classList.remove("active"));
 
-    // Show active tab
     const activePanel = document.getElementById(`staff-tab-${tabName}`);
     if (activePanel) activePanel.classList.remove("hidden");
 
-    // Highlight button
-    event.currentTarget.classList.add("active");
-
-    // Populate Tab Data
     if (tabName === "pos") {
         renderPOSCatalog();
         renderPOSCart();
     } else if (tabName === "inventory") {
         renderInventoryTable();
         renderStockLogsTable();
+    } else if (tabName === "dispatch") {
+        renderStaffDispatchTable();
     } else if (tabName === "quotes") {
         renderQuotesInbox();
     } else if (tabName === "dashboard") {
@@ -217,15 +233,27 @@ function getStatusBadgeClass(status) {
         case 'placed': return 'status-pending';
         case 'confirmed': return 'status-approved';
         case 'ready': return 'status-approved';
+        case 'out for delivery': return 'status-approved';
         case 'completed': return 'status-converted';
+        case 'cancelled': return 'status-pending';
         default: return 'status-pending';
     }
 }
 
-// 4. CUSTOMER STOREFRONT IMPLEMENTATION
+function getCategoryIcon(cat) {
+    switch (cat) {
+        case "Cement": return "fa-solid fa-trowel-bricks";
+        case "Steel": return "fa-solid fa-bars-staggered";
+        case "Paint": return "fa-solid fa-paint-roller";
+        case "Tools": return "fa-solid fa-screwdriver-wrench";
+        case "Electricals": return "fa-solid fa-bolt";
+        case "Plumbing": return "fa-solid fa-faucet-drip";
+        case "Building Materials": return "fa-solid fa-cubes-stacked";
+        default: return "fa-solid fa-box";
+    }
+}
 
-// Categories list
-const CATEGORIES = ["All", "Cement", "Steel", "Paint", "Tools", "Electricals", "Plumbing"];
+// 4. CUSTOMER STOREFRONT IMPLEMENTATION
 let activeCustomerCategory = "All";
 
 function renderCustomerCatalog() {
@@ -233,8 +261,9 @@ function renderCustomerCatalog() {
     const gridContainer = document.getElementById("customer-product-grid");
     const quoteDropdown = document.getElementById("quote-item-dropdown");
     
-    // 1. Render Category Chips
-    chipsContainer.innerHTML = CATEGORIES.map(cat => `
+    // 1. Render Category Chips dynamically
+    const allCats = ["All", ...categories];
+    chipsContainer.innerHTML = allCats.map(cat => `
         <button class="category-chip ${cat === activeCustomerCategory ? 'active' : ''}" 
                 onclick="setCustomerCategory('${cat}')">
             ${cat}
@@ -287,18 +316,6 @@ function renderCustomerCatalog() {
     `).join('');
 }
 
-function getCategoryIcon(cat) {
-    switch (cat) {
-        case "Cement": return "fa-solid fa-trowel-bricks";
-        case "Steel": return "fa-solid fa-bars-staggered";
-        case "Paint": return "fa-solid fa-paint-roller";
-        case "Tools": return "fa-solid fa-screwdriver-wrench";
-        case "Electricals": return "fa-solid fa-bolt";
-        case "Plumbing": return "fa-solid fa-faucet-drip";
-        default: return "fa-solid fa-box";
-    }
-}
-
 function setCustomerCategory(categoryName) {
     activeCustomerCategory = categoryName;
     renderCustomerCatalog();
@@ -332,11 +349,6 @@ function addToCustomerCart(sku) {
 
     updateCartBadge();
     renderCustomerCart();
-    
-    // Show toast or highlight cart
-    const cartTrigger = document.querySelector(".cart-trigger");
-    cartTrigger.style.transform = "scale(1.2)";
-    setTimeout(() => cartTrigger.style.transform = "none", 150);
 }
 
 function updateCartQty(sku, change) {
@@ -369,9 +381,7 @@ function updateCartBadge() {
 
 function selectPayMethod(method) {
     selectedPayMethod = method;
-    document.querySelectorAll(".pay-method-btn").forEach(btn => {
-        btn.classList.remove("active");
-    });
+    document.querySelectorAll(".pay-method-btn").forEach(btn => btn.classList.remove("active"));
     event.currentTarget.classList.add("active");
 
     const mpesaWrapper = document.getElementById("mpesa-number-input");
@@ -384,12 +394,12 @@ function selectPayMethod(method) {
 
 function updateFulfillmentOptions() {
     const fulfillment = document.getElementById("fulfillment-choice").value;
-    const addrGroup = document.getElementById("delivery-address-group");
+    const deliveryBox = document.getElementById("delivery-details-box");
     
     if (fulfillment === "delivery") {
-        addrGroup.classList.remove("hidden");
+        deliveryBox.classList.remove("hidden");
     } else {
-        addrGroup.classList.add("hidden");
+        deliveryBox.classList.add("hidden");
     }
     recalcCustomerCartTotal();
 }
@@ -441,7 +451,13 @@ function recalcCustomerCartTotal() {
     const subtotal = Number(subtotalText.replace(/[^\d.]/g, ''));
     
     const fulfillment = document.getElementById("fulfillment-choice").value;
-    const deliveryFee = fulfillment === "delivery" ? 1200 : 0;
+    let deliveryFee = 0;
+
+    if (fulfillment === "delivery") {
+        const areaSelect = document.getElementById("delivery-area");
+        const selectedOption = areaSelect.options[areaSelect.selectedIndex];
+        deliveryFee = Number(selectedOption.getAttribute("data-fee") || 1000);
+    }
     
     total = subtotal + deliveryFee;
     document.getElementById("cart-total").textContent = formatKES(total);
@@ -454,22 +470,25 @@ function processCustomerCheckout() {
     }
 
     const fulfillment = document.getElementById("fulfillment-choice").value;
+    const recipient = document.getElementById("delivery-recipient").value.trim();
+    const phone = document.getElementById("delivery-phone").value.trim();
     const address = document.getElementById("delivery-address").value.trim();
+    const area = document.getElementById("delivery-area").value;
     const payMethod = selectedPayMethod;
     const mpesaNo = document.getElementById("mpesa-number-input").value.trim();
 
-    if (fulfillment === "delivery" && !address) {
-        alert("Please enter a delivery address.");
-        return;
+    if (fulfillment === "delivery") {
+        if (!recipient || !phone || !address) {
+            alert("Please complete recipient name, phone, and delivery address.");
+            return;
+        }
     }
 
     if (payMethod === "mpesa" && !mpesaNo) {
-        alert("Please enter your M-Pesa phone number for the STK push request.");
+        alert("Please enter your M-Pesa phone number.");
         return;
     }
 
-    // Process Stock deductions
-    // Check if stock is still available first (race condition check)
     for (const item of customerCart) {
         const prod = getProductBySku(item.sku);
         if (prod.stockQty < item.qty) {
@@ -478,42 +497,41 @@ function processCustomerCheckout() {
         }
     }
 
-    // Deduct stock
     const itemsDescription = [];
     customerCart.forEach(item => {
         const prod = getProductBySku(item.sku);
         prod.stockQty -= item.qty;
         itemsDescription.push(`${prod.name} (x${item.qty})`);
         
-        // Log to Audit Log
-        logStockChange(prod.sku, prod.name, -item.qty, `Customer Online Store Order (${fulfillment})`, "Customer Portal");
+        logStockChange(prod.sku, prod.name, -item.qty, `Customer Online Order (${fulfillment})`, "Customer Portal");
     });
 
     const totalText = document.getElementById("cart-total").textContent;
     const totalVal = Number(totalText.replace(/[^\d.]/g, ''));
 
-    // Create Order
     const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000);
     const dateToday = new Date().toISOString().split('T')[0];
+    
     orders.unshift({
         id: orderId,
         date: dateToday,
+        customerName: recipient || "Online Customer",
+        phone: phone || mpesaNo,
         items: itemsDescription.join(', '),
         type: fulfillment === "delivery" ? "Delivery" : "Pickup",
+        deliveryArea: fulfillment === "delivery" ? area : "",
         total: totalVal,
-        status: "Placed"
+        status: "Placed",
+        paymentMethod: payMethod.toUpperCase()
     });
 
-    // Reset Cart
+    syncAllState();
     customerCart = [];
     updateCartBadge();
     toggleCartDrawer();
     
-    // Update Orders table & notify
     renderCustomerOrdersTracker();
-    alert(`Order ${orderId} created successfully! Payment simulated successfully. We will notify you when it's confirmed.`);
-
-    // Sync other views
+    alert(`Order ${orderId} placed successfully! We will notify you as it is dispatched.`);
     renderCustomerCatalog();
 }
 
@@ -523,26 +541,100 @@ function renderCustomerOrdersTracker() {
         <tr>
             <td style="font-weight:600;">${ord.id}</td>
             <td>${ord.date}</td>
-            <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${ord.items}</td>
-            <td>${ord.type}</td>
+            <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${ord.items}</td>
+            <td>${ord.type} ${ord.deliveryArea ? '(' + ord.deliveryArea + ')' : ''}</td>
             <td style="font-weight:700;">${formatKES(ord.total)}</td>
             <td><span class="quote-status-badge ${getStatusBadgeClass(ord.status)}">${ord.status}</span></td>
             <td>
-                ${ord.status === "Placed" ? `<button class="btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="cancelCustomerOrder('${ord.id}')">Cancel</button>` : `<span class="text-muted" style="font-size:0.8rem;">No actions</span>`}
+                ${ord.status === "Placed" ? `<button class="btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="cancelCustomerOrder('${ord.id}')">Cancel</button>` : `<span class="text-muted" style="font-size:0.8rem;">Locked</span>`}
             </td>
         </tr>
     `).join('');
 }
 
 function cancelCustomerOrder(orderId) {
-    const ordIndex = orders.findIndex(o => o.id === orderId);
-    if (ordIndex === -1) return;
-
-    // Refund stock qty (simple mockup)
-    // Note: in high fidelity, we would parse SKU quantities, but this is a dashboard helper
-    orders[ordIndex].status = "Cancelled";
+    const ord = orders.find(o => o.id === orderId);
+    if (!ord) return;
+    ord.status = "Cancelled";
+    syncAllState();
     renderCustomerOrdersTracker();
     alert(`Order ${orderId} cancelled.`);
+}
+
+function renderCustomerQuotesTracker() {
+    const tbody = document.getElementById("customer-quotes-tracker-tbody");
+    if (quotations.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-list-msg">No active quotations found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = quotations.map(q => {
+        const itemSummary = q.items ? q.items.map(i => `${i.qty}x ${i.name}`).join(', ') : q.description;
+        return `
+            <tr>
+                <td style="font-weight:600;">${q.id}</td>
+                <td>${q.date}</td>
+                <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${itemSummary}</td>
+                <td style="font-weight:700;">${q.quotedPrice > 0 ? formatKES(q.quotedPrice) : 'Pending Review'}</td>
+                <td>${q.validUntil || 'N/A'}</td>
+                <td><span class="quote-status-badge ${getStatusBadgeClass(q.status)}">${q.status}</span></td>
+                <td>
+                    ${q.status === 'approved' ? `
+                        <button class="btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="customerConvertQuoteToOrder('${q.id}')">
+                            Convert & Checkout
+                        </button>
+                    ` : `<span class="text-muted" style="font-size:0.8rem;">No actions</span>`}
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function customerConvertQuoteToOrder(quoteId) {
+    const quote = quotations.find(q => q.id === quoteId);
+    if (!quote || quote.status !== 'approved') return;
+
+    for (const item of quote.items) {
+        const prod = getProductBySku(item.sku);
+        if (prod && prod.stockQty < item.qty) {
+            alert(`Insufficient stock for ${prod.name} (${prod.stockQty} left). Please contact store helpline.`);
+            return;
+        }
+    }
+
+    const itemsDesc = [];
+    quote.items.forEach(item => {
+        const prod = getProductBySku(item.sku);
+        if (prod) {
+            prod.stockQty -= item.qty;
+            itemsDesc.push(`${prod.name} (x${item.qty})`);
+            logStockChange(prod.sku, prod.name, -item.qty, `Customer Converted Quote ${quote.id}`, "Customer Storefront");
+        }
+    });
+
+    const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000);
+    const dateToday = new Date().toISOString().split('T')[0];
+
+    orders.unshift({
+        id: orderId,
+        date: dateToday,
+        customerName: quote.customerName,
+        phone: quote.phone,
+        items: itemsDesc.join(', '),
+        type: "Delivery",
+        deliveryArea: "Nairobi Region",
+        total: quote.quotedPrice,
+        status: "Placed",
+        paymentMethod: "M-Pesa"
+    });
+
+    quote.status = "converted";
+    syncAllState();
+    
+    alert(`SMS Notification sent to ${quote.phone}: Your quote ${quote.id} was converted into Order ${orderId}!`);
+    renderCustomerQuotesTracker();
+    renderCustomerOrdersTracker();
+    renderCustomerCatalog();
 }
 
 // 5. HELPLINE & CALLBACK MODAL LOGIC
@@ -567,18 +659,19 @@ function submitCallbackRequest(e) {
         id: callbackId,
         name,
         phone,
-        query: reason || "General Callback Helpline Request",
+        query: reason || "General Helpline Request",
         status: "pending",
         timestamp
     });
 
+    syncAllState();
     closeCallbackModal();
-    alert("Help Request submitted! A hardware specialist will contact you shortly.");
+    alert("Request submitted! A hardware expert will contact you shortly.");
     document.getElementById("callback-request-form").reset();
 }
 
 // 6. CUSTOMER QUOTATION SYSTEM
-let customerQuoteItems = []; // { sku, qty }
+let customerQuoteItems = [];
 
 function addQuoteItemToList() {
     const dropdown = document.getElementById("quote-item-dropdown");
@@ -586,7 +679,6 @@ function addQuoteItemToList() {
     
     const sku = dropdown.value;
     const qty = parseInt(qtyInput.value);
-    
     if (!sku || isNaN(qty) || qty <= 0) return;
 
     const prod = getProductBySku(sku);
@@ -595,11 +687,7 @@ function addQuoteItemToList() {
     if (existing) {
         existing.qty += qty;
     } else {
-        customerQuoteItems.push({
-            sku,
-            name: prod.name,
-            qty
-        });
+        customerQuoteItems.push({ sku, name: prod.name, qty });
     }
 
     renderQuoteBuilderList();
@@ -632,7 +720,7 @@ function submitQuoteRequest(e) {
     const desc = document.getElementById("quote-description").value;
 
     if (customerQuoteItems.length === 0 && !desc.trim()) {
-        alert("Please add items to the quotation list or describe your needs in the text box.");
+        alert("Please add items or describe your project.");
         return;
     }
 
@@ -645,8 +733,8 @@ function submitQuoteRequest(e) {
             sku: item.sku,
             name: item.name,
             qty: item.qty,
-            requestedPrice: prod.salePrice,
-            quotedPrice: 0 // to be set by staff manager
+            requestedPrice: prod ? prod.salePrice : 0,
+            quotedPrice: 0
         };
     });
 
@@ -662,43 +750,85 @@ function submitQuoteRequest(e) {
         validUntil: ""
     });
 
-    // Reset
+    syncAllState();
     customerQuoteItems = [];
     renderQuoteBuilderList();
     document.getElementById("quote-request-form").reset();
     
-    alert(`Quotation Request ${quoteId} submitted! Check with our sales manager for pricing.`);
-    
-    // Sync badge
+    alert(`Quotation Request ${quoteId} submitted! You can track its status in the Track Quotes section.`);
     updateQuotesBadge();
+    renderCustomerQuotesTracker();
 }
 
 function updateQuotesBadge() {
     const pendingCount = quotations.filter(q => q.status === "pending").length;
     const badge = document.getElementById("pending-quotes-badge");
-    
-    if (pendingCount > 0) {
-        badge.textContent = pendingCount;
-        badge.classList.remove("hidden");
-    } else {
-        badge.classList.add("hidden");
+    if (badge) {
+        if (pendingCount > 0) {
+            badge.textContent = pendingCount;
+            badge.classList.remove("hidden");
+        } else {
+            badge.classList.add("hidden");
+        }
     }
 }
 
-// 7. STAFF POS (POINT OF SALE) SYSTEM
+// 7. DYNAMIC CATEGORY MANAGER MODAL
+function openCategoryManagerModal() {
+    document.getElementById("modal-categories").classList.remove("hidden");
+    renderCategoryManagerList();
+}
 
-let posSearchVal = "";
-let posCatVal = "all";
+function closeCategoryManagerModal() {
+    document.getElementById("modal-categories").classList.add("hidden");
+}
 
+function renderCategoryManagerList() {
+    const ul = document.getElementById("category-manager-list-ul");
+    ul.innerHTML = categories.map(cat => `
+        <li>
+            <span>${cat}</span>
+            <i class="fa-solid fa-trash-can delete-cat-btn" onclick="deleteCategory('${cat}')"></i>
+        </li>
+    `).join('');
+}
+
+function submitAddCategory(e) {
+    e.preventDefault();
+    const input = document.getElementById("new-cat-name");
+    const name = input.value.trim();
+    if (!name) return;
+
+    if (categories.includes(name)) {
+        alert("Category already exists!");
+        return;
+    }
+
+    categories.push(name);
+    syncAllState();
+    input.value = "";
+    renderCategoryManagerList();
+    renderCustomerCatalog();
+    renderPOSCatalog();
+    alert(`Category "${name}" added successfully!`);
+}
+
+function deleteCategory(catName) {
+    if (!confirm(`Are you sure you want to delete category "${catName}"?`)) return;
+    categories = categories.filter(c => c !== catName);
+    syncAllState();
+    renderCategoryManagerList();
+    renderCustomerCatalog();
+    renderPOSCatalog();
+}
+
+// 8. STAFF POS & INVENTORY CONTROLLERS
 function renderPOSCatalog() {
     const grid = document.getElementById("pos-products-grid");
     const categorySelect = document.getElementById("pos-category-select");
 
-    // Populate category dropdown in POS once
-    if (categorySelect.options.length <= 1) {
-        categorySelect.innerHTML = `<option value="all">All Categories</option>` + 
-            CATEGORIES.slice(1).map(cat => `<option value="${cat}">${cat}</option>`).join('');
-    }
+    categorySelect.innerHTML = `<option value="all">All Categories</option>` + 
+        categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
 
     const searchVal = document.getElementById("pos-search-input").value.toLowerCase();
     const selectCat = categorySelect.value;
@@ -709,21 +839,18 @@ function renderPOSCatalog() {
         return matchesCategory && matchesSearch;
     });
 
-    grid.innerHTML = filtered.map(prod => {
-        const isOutOfStock = prod.stockQty <= 0;
-        return `
-            <div class="pos-item-card" onclick="addToPOSCart('${prod.sku}')">
-                <h5>${prod.name}</h5>
-                <span class="pos-item-sku">${prod.sku}</span>
-                <div class="pos-item-footer">
-                    <span class="pos-item-price">${formatKES(prod.salePrice)}</span>
-                    <span class="pos-item-stock ${prod.stockQty <= prod.reorderLevel ? 'text-amber' : 'text-green'}">
-                        ${prod.stockQty} ${prod.unit}
-                    </span>
-                </div>
+    grid.innerHTML = filtered.map(prod => `
+        <div class="pos-item-card" onclick="addToPOSCart('${prod.sku}')">
+            <h5>${prod.name}</h5>
+            <span class="pos-item-sku">${prod.sku}</span>
+            <div class="pos-item-footer">
+                <span class="pos-item-price">${formatKES(prod.salePrice)}</span>
+                <span class="pos-item-stock ${prod.stockQty <= prod.reorderLevel ? 'text-amber' : 'text-green'}">
+                    ${prod.stockQty} ${prod.unit}
+                </span>
             </div>
-        `;
-    }).join('');
+        </div>
+    `).join('');
 }
 
 function filterPOSCatalog() {
@@ -732,20 +859,11 @@ function filterPOSCatalog() {
 
 function addToPOSCart(sku) {
     const prod = getProductBySku(sku);
-    if (!prod) return;
-
-    if (prod.stockQty <= 0) {
-        alert("Product is out of stock in warehouse!");
-        return;
-    }
+    if (!prod || prod.stockQty <= 0) return;
 
     const existing = posCart.find(item => item.sku === sku);
     if (existing) {
-        if (existing.qty < prod.stockQty) {
-            existing.qty++;
-        } else {
-            alert(`Overselling warning! Only ${prod.stockQty} items in stock.`);
-        }
+        if (existing.qty < prod.stockQty) existing.qty++;
     } else {
         posCart.push({ sku, qty: 1 });
     }
@@ -753,38 +871,10 @@ function addToPOSCart(sku) {
     renderPOSCart();
 }
 
-function updatePOSCartQty(sku, qtyVal) {
-    const prod = getProductBySku(sku);
-    const cartItem = posCart.find(item => item.sku === sku);
-    if (!cartItem) return;
-
-    const parsedQty = parseInt(qtyVal);
-    if (isNaN(parsedQty) || parsedQty <= 0) {
-        posCart = posCart.filter(item => item.sku !== sku);
-    } else if (parsedQty > prod.stockQty) {
-        cartItem.qty = prod.stockQty;
-        alert(`Quantity capped at stock maximum (${prod.stockQty}).`);
-    } else {
-        cartItem.qty = parsedQty;
-    }
-    renderPOSCart();
-}
-
-function removePOSCartItem(sku) {
-    posCart = posCart.filter(item => item.sku !== sku);
-    renderPOSCart();
-}
-
 function renderPOSCart() {
     const container = document.getElementById("pos-cart-items");
-    
     if (posCart.length === 0) {
-        container.innerHTML = `
-            <div class="empty-pos-msg">
-                <i class="fa-solid fa-cart-arrow-down"></i>
-                <p>Cart is empty. Click items on the left to add to bill.</p>
-            </div>
-        `;
+        container.innerHTML = `<div class="empty-pos-msg"><i class="fa-solid fa-cart-arrow-down"></i><p>Cart is empty.</p></div>`;
         document.getElementById("pos-subtotal").textContent = "KES 0.00";
         document.getElementById("pos-tax").textContent = "KES 0.00";
         document.getElementById("pos-total").textContent = "KES 0.00";
@@ -803,81 +893,61 @@ function renderPOSCart() {
                     <h6>${prod.name}</h6>
                     <span class="item-cost">${formatKES(prod.salePrice)}</span>
                 </div>
-                <input type="number" class="pos-cart-qty-input" value="${item.qty}" min="1" 
-                       onchange="updatePOSCartQty('${item.sku}', this.value)">
+                <input type="number" class="pos-cart-qty-input" value="${item.qty}" min="1" onchange="updatePOSCartQty('${item.sku}', this.value)">
                 <i class="fa-regular fa-trash-can pos-cart-item-remove" onclick="removePOSCartItem('${item.sku}')"></i>
             </div>
         `;
     }).join('');
 
-    const vatAmt = subtotal * 0.16; // 16% VAT Included
-    const total = subtotal; // Price is inclusive of VAT
-
+    const vatAmt = subtotal * 0.16;
     document.getElementById("pos-subtotal").textContent = formatKES(subtotal - vatAmt);
     document.getElementById("pos-tax").textContent = formatKES(vatAmt);
-    document.getElementById("pos-total").textContent = formatKES(total);
+    document.getElementById("pos-total").textContent = formatKES(subtotal);
+}
+
+function updatePOSCartQty(sku, val) {
+    const prod = getProductBySku(sku);
+    const cartItem = posCart.find(item => item.sku === sku);
+    if (!cartItem || !prod) return;
+
+    const q = parseInt(val);
+    if (isNaN(q) || q <= 0) {
+        posCart = posCart.filter(item => item.sku !== sku);
+    } else {
+        cartItem.qty = Math.min(q, prod.stockQty);
+    }
+    renderPOSCart();
+}
+
+function removePOSCartItem(sku) {
+    posCart = posCart.filter(item => item.sku !== sku);
+    renderPOSCart();
 }
 
 function togglePosPaymentDetails() {
     const type = document.getElementById("pos-payment-type").value;
     const refBox = document.getElementById("pos-mpesa-wrapper");
-    if (type === "mpesa") {
-        refBox.classList.remove("hidden");
-    } else {
-        refBox.classList.add("hidden");
-    }
+    if (type === "mpesa") refBox.classList.remove("hidden");
+    else refBox.classList.add("hidden");
 }
 
 function processPOSSale() {
-    if (posCart.length === 0) {
-        alert("Cannot process an empty sale!");
-        return;
-    }
+    if (posCart.length === 0) return;
 
-    const payType = document.getElementById("pos-payment-type").value;
-    const mpesaRef = document.getElementById("pos-mpesa-ref").value.trim();
-
-    if (payType === "mpesa" && !mpesaRef) {
-        alert("Please enter the M-Pesa Transaction Reference code.");
-        return;
-    }
-
-    // Verify stock availability
-    for (const item of posCart) {
-        const prod = getProductBySku(item.sku);
-        if (prod.stockQty < item.qty) {
-            alert(`Overselling alert! ${prod.name} only has ${prod.stockQty} in stock.`);
-            return;
-        }
-    }
-
-    // Deduct Stock and create Receipt info
     const receiptItems = [];
     let subtotal = 0;
 
     posCart.forEach(item => {
         const prod = getProductBySku(item.sku);
         prod.stockQty -= item.qty;
-        
         const lineVal = prod.salePrice * item.qty;
         subtotal += lineVal;
 
-        receiptItems.push({
-            name: prod.name,
-            qty: item.qty,
-            unitPrice: prod.salePrice,
-            total: lineVal
-        });
-
-        // Audit Log
+        receiptItems.push({ name: prod.name, qty: item.qty, unitPrice: prod.salePrice, total: lineVal });
         logStockChange(prod.sku, prod.name, -item.qty, `In-Store POS Sale`, "Cashier T1");
     });
 
-    // Save sale totals in daily sales array
-    const vatAmt = subtotal * 0.16;
-    const netAmt = subtotal - vatAmt;
-
-    // Show Printable Receipt Modal
+    syncAllState();
     const receiptBox = document.getElementById("receipt-paper-content");
     const receiptNo = "RC-" + Math.floor(100000 + Math.random() * 900000);
     const dateStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
@@ -889,58 +959,34 @@ function processPOSSale() {
         <div class="receipt-metadata">
             <strong>Receipt No:</strong> ${receiptNo}<br>
             <strong>Date/Time:</strong> ${dateStr}<br>
-            <strong>Cashier ID:</strong> Cashier T1<br>
-            <strong>Payment Mode:</strong> ${payType.toUpperCase()} ${mpesaRef ? '(' + mpesaRef + ')' : ''}
+            <strong>Cashier ID:</strong> Cashier T1
         </div>
         <div class="divider"></div>
         <table class="receipt-table">
             <thead>
                 <tr>
-                    <th>Item Description</th>
+                    <th>Item</th>
                     <th>Qty</th>
                     <th class="align-right">Total</th>
                 </tr>
             </thead>
             <tbody>
-                ${receiptItems.map(item => `
-                    <tr>
-                        <td>${item.name}</td>
-                        <td>${item.qty}</td>
-                        <td class="align-right">${formatKES(item.total).replace("KES ", "")}</td>
-                    </tr>
-                `).join('')}
+                ${receiptItems.map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td class="align-right">${formatKES(i.total).replace("KES ", "")}</td></tr>`).join('')}
             </tbody>
         </table>
         <div class="divider"></div>
         <div class="receipt-totals">
-            <div class="totals-row">
-                <span>Net Subtotal:</span>
-                <span>${formatKES(netAmt).replace("KES ", "")}</span>
-            </div>
-            <div class="totals-row">
-                <span>VAT (16% Inc.):</span>
-                <span>${formatKES(vatAmt).replace("KES ", "")}</span>
-            </div>
             <div class="totals-row total-highlight">
                 <span>TOTAL PAID:</span>
                 <span>${formatKES(subtotal)}</span>
             </div>
         </div>
-        <div class="divider"></div>
-        <p style="text-align:center; font-size:0.7rem;">Thank you for shopping with us!<br>Goods once sold are not returnable.<br>Building Tomorrow Together.</p>
-        <div class="receipt-barcode">
-            <i class="fa-solid fa-barcode"></i>
-            <span>*${receiptNo}*</span>
-        </div>
     `;
 
     document.getElementById("modal-receipt").classList.remove("hidden");
-
-    // Reset POS cart
     posCart = [];
     renderPOSCart();
     renderPOSCatalog();
-    document.getElementById("pos-mpesa-ref").value = "";
 }
 
 function closeReceiptModal() {
@@ -948,15 +994,11 @@ function closeReceiptModal() {
 }
 
 function downloadReceiptAsPDF() {
-    alert("Downloading simulated receipt PDF... (receipt file saved locally).");
+    alert("Saving PDF receipt locally...");
     closeReceiptModal();
 }
 
-// 8. STAFF INVENTORY & STOCK LOGS CONTROL
-
-let inventorySearchVal = "";
-let inventoryFilterStock = "all";
-
+// 9. INVENTORY TABLE
 function renderInventoryTable() {
     const tbody = document.getElementById("inventory-table-body");
     const searchVal = document.getElementById("inv-search").value.toLowerCase();
@@ -965,112 +1007,48 @@ function renderInventoryTable() {
     const filtered = products.filter(prod => {
         const matchesSearch = prod.name.toLowerCase().includes(searchVal) || prod.sku.toLowerCase().includes(searchVal);
         let matchesStock = true;
-        if (filterStock === "low") {
-            matchesStock = prod.stockQty <= prod.reorderLevel && prod.stockQty > 0;
-        } else if (filterStock === "out") {
-            matchesStock = prod.stockQty <= 0;
-        }
+        if (filterStock === "low") matchesStock = prod.stockQty <= prod.reorderLevel && prod.stockQty > 0;
+        else if (filterStock === "out") matchesStock = prod.stockQty <= 0;
         return matchesSearch && matchesStock;
     });
 
-    tbody.innerHTML = filtered.map(prod => {
-        let statusTag = "";
-        if (prod.stockQty <= 0) {
-            statusTag = `<span class="quote-status-badge status-pending">Out of Stock</span>`;
-        } else if (prod.stockQty <= prod.reorderLevel) {
-            statusTag = `<span class="quote-status-badge status-approved" style="background-color:var(--amber-bg); color:var(--amber);">Low Stock</span>`;
-        } else {
-            statusTag = `<span class="quote-status-badge status-converted">In Stock</span>`;
-        }
-
-        return `
-            <tr>
-                <td style="font-family:monospace;">${prod.sku}</td>
-                <td style="font-weight:600;">${prod.name}</td>
-                <td>${prod.category}</td>
-                <td>${prod.unit}</td>
-                <td>${formatKES(prod.costPrice)}</td>
-                <td>${formatKES(prod.salePrice)}</td>
-                <td style="font-weight:700;">${prod.stockQty}</td>
-                <td>${prod.reorderLevel}</td>
-                <td>${statusTag}</td>
-                <td>
-                    <button class="btn-secondary" style="padding:2px 8px; font-size:0.75rem;" 
-                            onclick="openAdjustStockModal('${prod.sku}')">Adjust</button>
-                    <button class="btn-secondary" style="padding:2px 8px; font-size:0.75rem; color:var(--red); border-color:var(--red-bg);" 
-                            onclick="deleteProduct('${prod.sku}')">Delete</button>
-                </td>
-            </tr>
-        `;
-    }).join('');
-}
-
-function handleStaffLogin(e) {
-    e.preventDefault();
-    const pinVal = document.getElementById("staff-pin-input").value;
-    if (pinVal === "1234" || pinVal === "admin123") {
-        isStaffAuthenticated = true;
-        document.getElementById("staff-pin-input").value = "";
-        document.getElementById("staff-login-screen").classList.add("hidden");
-        document.getElementById("staff-main-layout").classList.remove("hidden");
-        switchStaffTab(activeStaffTab);
-    } else {
-        alert("Incorrect PIN. Access Denied!");
-    }
-}
-
-function handleStaffLogout() {
-    isStaffAuthenticated = false;
-    document.getElementById("staff-login-screen").classList.remove("hidden");
-    document.getElementById("staff-main-layout").classList.add("hidden");
+    tbody.innerHTML = filtered.map(prod => `
+        <tr>
+            <td style="font-family:monospace;">${prod.sku}</td>
+            <td style="font-weight:600;">${prod.name}</td>
+            <td>${prod.category}</td>
+            <td>${prod.unit}</td>
+            <td>${formatKES(prod.costPrice)}</td>
+            <td>${formatKES(prod.salePrice)}</td>
+            <td style="font-weight:700;">${prod.stockQty}</td>
+            <td>${prod.reorderLevel}</td>
+            <td>${getStockBadge(prod.stockQty, prod.reorderLevel)}</td>
+            <td>
+                <button class="btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="openAdjustStockModal('${prod.sku}')">Adjust</button>
+                <button class="btn-secondary" style="padding:2px 8px; font-size:0.75rem; color:var(--red); border-color:var(--red-bg);" onclick="deleteProduct('${prod.sku}')">Delete</button>
+            </td>
+        </tr>
+    `).join('');
 }
 
 function deleteProduct(sku) {
     const prod = getProductBySku(sku);
     if (!prod) return;
-    if (!confirm(`Are you sure you want to delete "${prod.name}" (SKU: ${sku})? This will remove it from inventory.`)) return;
+    if (!confirm(`Are you sure you want to delete "${prod.name}"?`)) return;
 
     products = products.filter(p => p.sku !== sku);
     logStockChange(sku, prod.name, -prod.stockQty, "Product deleted from database", "Store Manager");
+    syncAllState();
     
     renderInventoryTable();
     renderCustomerCatalog();
     renderPOSCatalog();
-    alert(`Product "${prod.name}" successfully deleted.`);
+    alert(`Product ${prod.name} deleted.`);
 }
 
-function renderStockLogsTable() {
-    const tbody = document.getElementById("stock-log-table-body");
-    if (stockLogs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-list-msg">No logs recorded yet.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = stockLogs.map(log => `
-        <tr>
-            <td style="font-size:0.75rem; color:var(--text-muted);">${log.timestamp}</td>
-            <td style="font-weight:600;">${log.skuName}</td>
-            <td style="font-weight:700; color:${log.direction === 'IN' ? 'var(--green)' : 'var(--red)'}">
-                ${log.direction === 'IN' ? '+' : '-'}${log.changeQty}
-            </td>
-            <td>
-                <span class="quote-status-badge ${log.direction === 'IN' ? 'status-approved' : 'status-pending'}">
-                    ${log.direction}
-                </span>
-            </td>
-            <td>${log.reason}</td>
-            <td>${log.user}</td>
-        </tr>
-    `).join('');
-}
-
-function clearStockAdjustmentLogs() {
-    stockLogs = [];
-    renderStockLogsTable();
-}
-
-// Add Product Modal
 function openAddProductModal() {
+    const catSelect = document.getElementById("prod-category");
+    catSelect.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
     document.getElementById("modal-add-product").classList.remove("hidden");
 }
 
@@ -1089,43 +1067,24 @@ function submitAddProduct(e) {
     const reorder = Number(document.getElementById("prod-reorder").value);
     const imageUrl = document.getElementById("prod-image-url").value.trim();
 
-    // Make custom SKU
     const prefix = cat.substring(0, 3).toUpperCase();
     const count = products.filter(p => p.category === cat).length + 1;
     const sku = `${prefix}-0${count < 10 ? '0' + count : count}`;
 
-    const newProd = {
-        sku,
-        name,
-        category: cat,
-        unit,
-        costPrice: cost,
-        salePrice: sale,
-        stockQty: stock,
-        reorderLevel: reorder,
-        imageUrl: imageUrl || ""
-    };
+    products.push({ sku, name, category: cat, unit, costPrice: cost, salePrice: sale, stockQty: stock, reorderLevel: reorder, imageUrl });
+    syncAllState();
 
-    products.push(newProd);
-
-    // Log to Stock Audit
-    if (stock > 0) {
-        logStockChange(sku, name, stock, "Initial product setup inventory load", "Store Manager");
-    }
+    if (stock > 0) logStockChange(sku, name, stock, "Initial product setup load", "Store Manager");
 
     closeAddProductModal();
     document.getElementById("add-product-form").reset();
-    
     renderInventoryTable();
-    renderStockLogsTable();
-    alert(`Product ${name} added successfully as SKU ${sku}!`);
+    alert(`Product ${name} added!`);
 }
 
-// Adjust Stock Level Modal
 function openAdjustStockModal(sku) {
     const prod = getProductBySku(sku);
     if (!prod) return;
-
     document.getElementById("adjust-prod-sku").value = prod.sku;
     document.getElementById("adjust-prod-title").textContent = prod.name;
     document.getElementById("adjust-prod-current-qty").textContent = prod.stockQty;
@@ -1142,49 +1101,83 @@ function submitAdjustStock(e) {
     const changeQty = parseInt(document.getElementById("adjust-qty-change").value);
     const reasonOption = document.getElementById("adjust-reason").value;
 
-    if (isNaN(changeQty) || changeQty === 0) {
-        alert("Please enter a valid non-zero adjustment quantity.");
-        return;
-    }
-
     const prod = getProductBySku(sku);
-    if (!prod) return;
-
-    if (prod.stockQty + changeQty < 0) {
-        alert("Error: Total stock cannot be adjusted below zero!");
-        return;
-    }
+    if (!prod || isNaN(changeQty) || changeQty === 0) return;
 
     prod.stockQty += changeQty;
-
-    let reasonText = "";
-    if (reasonOption === "restock") reasonText = "Restock replenishment supply";
-    else if (reasonOption === "damage") reasonText = "Damaged inventory write-off";
-    else if (reasonOption === "audit") reasonText = "Inventory physical audit correction";
-    else if (reasonOption === "return") reasonText = "Customer inventory return";
-
-    logStockChange(sku, prod.name, changeQty, reasonText, "Store Manager");
+    syncAllState();
+    logStockChange(sku, prod.name, changeQty, `Stock Adjustment: ${reasonOption}`, "Store Manager");
 
     closeAdjustStockModal();
-    document.getElementById("adjust-stock-form").reset();
-    
     renderInventoryTable();
+}
+
+function renderStockLogsTable() {
+    const tbody = document.getElementById("stock-log-table-body");
+    tbody.innerHTML = stockLogs.map(log => `
+        <tr>
+            <td style="font-size:0.75rem; color:var(--text-muted);">${log.timestamp}</td>
+            <td style="font-weight:600;">${log.skuName}</td>
+            <td style="font-weight:700; color:${log.direction === 'IN' ? 'var(--green)' : 'var(--red)'}">${log.direction === 'IN' ? '+' : '-'}${log.changeQty}</td>
+            <td><span class="quote-status-badge ${log.direction === 'IN' ? 'status-approved' : 'status-pending'}">${log.direction}</span></td>
+            <td>${log.reason}</td>
+            <td>${log.user}</td>
+        </tr>
+    `).join('');
+}
+
+function clearStockAdjustmentLogs() {
+    stockLogs = [];
+    syncAllState();
     renderStockLogsTable();
 }
 
-// 9. MANAGER QUOTATION PORTAL
+// 10. ORDERS & DISPATCH DASHBOARD
+function renderStaffDispatchTable() {
+    const tbody = document.getElementById("staff-dispatch-table-tbody");
+    tbody.innerHTML = orders.map(ord => `
+        <tr>
+            <td style="font-weight:600;">${ord.id}</td>
+            <td>${ord.date}</td>
+            <td><strong>${ord.customerName}</strong><br><small style="color:var(--text-secondary);">${ord.phone}</small></td>
+            <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${ord.items}</td>
+            <td>${ord.type} ${ord.deliveryArea ? '<b>(' + ord.deliveryArea + ')</b>' : ''}</td>
+            <td style="font-weight:700;">${formatKES(ord.total)}</td>
+            <td><span class="quote-status-badge ${getStatusBadgeClass(ord.status)}">${ord.status}</span></td>
+            <td>
+                <select style="padding:4px; font-size:0.75rem;" onchange="advanceOrderStatus('${ord.id}', this.value)">
+                    <option value="">Update Status...</option>
+                    <option value="Confirmed">Mark Confirmed</option>
+                    <option value="Out for Delivery">Out for Delivery</option>
+                    <option value="Completed">Mark Completed</option>
+                    <option value="Cancelled">Cancel Order</option>
+                </select>
+            </td>
+        </tr>
+    `).join('');
+}
 
+function advanceOrderStatus(orderId, newStatus) {
+    if (!newStatus) return;
+    const ord = orders.find(o => o.id === orderId);
+    if (!ord) return;
+    ord.status = newStatus;
+    syncAllState();
+    renderStaffDispatchTable();
+    renderCustomerOrdersTracker();
+    alert(`Order ${orderId} status updated to: ${newStatus}`);
+}
+
+// 11. STAFF QUOTATION MANAGER
 function renderQuotesInbox() {
     const listPanel = document.getElementById("quotes-inbox-list");
     listPanel.innerHTML = quotations.map(q => `
         <div class="quote-inbox-card ${selectedQuoteId === q.id ? 'active' : ''}" onclick="selectQuotation('${q.id}')">
             <span class="quote-status-badge ${getStatusBadgeClass(q.status)}">${q.status}</span>
             <h5>${q.customerName}</h5>
-            <p><i class="fa-regular fa-clock"></i> Requested on: ${q.date}</p>
-            <p><i class="fa-solid fa-phone"></i> Phone: ${q.phone}</p>
+            <p><i class="fa-regular fa-clock"></i> Date: ${q.date}</p>
         </div>
     `).join('');
-
     updateQuotesBadge();
 }
 
@@ -1206,295 +1199,105 @@ function selectQuotation(quoteId) {
     detailsActive.classList.remove("hidden");
 
     let subtotal = 0;
-    const itemsRows = quote.items.map((item, idx) => {
+    const itemsRows = quote.items ? quote.items.map((item, idx) => {
         const prod = getProductBySku(item.sku);
-        const quotedPrice = item.quotedPrice || prod.salePrice;
+        const quotedPrice = item.quotedPrice || (prod ? prod.salePrice : 0);
         subtotal += quotedPrice * item.qty;
 
         return `
             <tr>
                 <td style="font-weight:600;">${item.name}</td>
                 <td>${item.qty}</td>
-                <td>${formatKES(prod.salePrice)}</td>
-                <td>
-                    <input type="number" min="0" value="${quotedPrice}" 
-                           oninput="updateQuoteItemPrice('${quote.id}', '${item.sku}', this.value)" 
-                           ${quote.status !== 'pending' ? 'disabled' : ''}>
-                </td>
-                <td style="font-weight:700;" id="quote-line-total-${item.sku}">
-                    ${formatKES(quotedPrice * item.qty)}
-                </td>
+                <td>${formatKES(prod ? prod.salePrice : 0)}</td>
+                <td><input type="number" min="0" value="${quotedPrice}" oninput="updateQuoteItemPrice('${quote.id}', '${item.sku}', this.value)" ${quote.status !== 'pending' ? 'disabled' : ''}></td>
+                <td style="font-weight:700;" id="quote-line-total-${item.sku}">${formatKES(quotedPrice * item.qty)}</td>
             </tr>
         `;
-    }).join('');
+    }).join('') : '';
 
     detailsActive.innerHTML = `
         <div class="quote-review-header">
             <span class="quote-status-badge ${getStatusBadgeClass(quote.status)}" style="float:right;">${quote.status}</span>
             <h4>Review Quote Request: ${quote.id}</h4>
-            <p><strong>Customer Name:</strong> ${quote.customerName} | <strong>Phone:</strong> ${quote.phone}</p>
-            ${quote.description ? `<p style="margin-top: 8px; font-style:italic;">"${quote.description}"</p>` : ''}
+            <p><strong>Customer:</strong> ${quote.customerName} | <strong>Phone:</strong> ${quote.phone}</p>
         </div>
-        
         <table class="quote-review-items-table">
             <thead>
-                <tr>
-                    <th>Item Description</th>
-                    <th>Qty</th>
-                    <th>Standard Price</th>
-                    <th>Quoted Price (KES)</th>
-                    <th>Total</th>
-                </tr>
+                <tr><th>Item</th><th>Qty</th><th>Standard</th><th>Quoted Price</th><th>Total</th></tr>
             </thead>
-            <tbody>
-                ${itemsRows}
-            </tbody>
+            <tbody>${itemsRows}</tbody>
         </table>
-
         <div class="quote-price-summary-box">
-            <div class="summary-row" style="font-size:1.15rem; font-weight:700;">
-                <span>Proposed Total Value:</span>
+            <div class="summary-row" style="font-weight:700;">
+                <span>Total Value:</span>
                 <span id="quote-review-grand-total">${formatKES(subtotal)}</span>
             </div>
-            ${quote.status === 'pending' ? `
-                <div class="form-group" style="margin-top:10px; margin-bottom:0;">
-                    <label for="quote-validity">Validity Period (Expiry Date)</label>
-                    <input type="date" id="quote-validity" required value="2026-09-06">
-                </div>
-            ` : `
-                <p style="margin-top: 8px; color:var(--text-secondary);">
-                    <strong>Validity Expiry:</strong> ${quote.validUntil || '30 Days'}
-                </p>
-            `}
+            ${quote.status === 'pending' ? `<div class="form-group" style="margin-top:10px;"><label>Expiry Date</label><input type="date" id="quote-validity" value="2026-09-30"></div>` : ''}
         </div>
-
         <div class="quote-action-bar">
             ${quote.status === 'pending' ? `
-                <button class="btn-primary" onclick="approveQuotation('${quote.id}')">
-                    <i class="fa-solid fa-check"></i> Approve & Send to Customer
-                </button>
-                <button class="btn-secondary" style="color:var(--red); border-color:var(--red-bg);" onclick="rejectQuotation('${quote.id}')">
-                    Reject Quote
-                </button>
-            ` : quote.status === 'approved' ? `
-                <button class="btn-primary" onclick="convertQuoteToOrder('${quote.id}')">
-                    <i class="fa-solid fa-cart-shopping"></i> Convert Quote to Order
-                </button>
-                <span style="font-size:0.85rem; color:var(--text-muted); align-self:center;">Approved Quote waiting customer checkout conversion.</span>
-            ` : `
-                <span class="text-green" style="font-weight:600;"><i class="fa-solid fa-circle-check"></i> This quotation has been converted to Order.</span>
-            `}
+                <button class="btn-primary" onclick="approveQuotation('${quote.id}')"><i class="fa-solid fa-check"></i> Approve Quote</button>
+            ` : `<span class="text-green"><i class="fa-solid fa-circle-check"></i> Quotation processed.</span>`}
         </div>
     `;
 }
 
-function updateQuoteItemPrice(quoteId, sku, newPriceVal) {
+function updateQuoteItemPrice(quoteId, sku, val) {
     const quote = quotations.find(q => q.id === quoteId);
     if (!quote) return;
-
     const item = quote.items.find(i => i.sku === sku);
     if (!item) return;
 
-    const newPrice = Number(newPriceVal);
-    if (isNaN(newPrice) || newPrice < 0) return;
-
-    item.quotedPrice = newPrice;
-    
-    // Update line total inside active view
-    const lineTotalTd = document.getElementById(`quote-line-total-${sku}`);
-    if (lineTotalTd) lineTotalTd.textContent = formatKES(newPrice * item.qty);
-
-    // Update grand total
+    item.quotedPrice = Number(val);
     let grand = 0;
-    quote.items.forEach(it => {
-        grand += (it.quotedPrice || getProductBySku(it.sku).salePrice) * it.qty;
-    });
-    
-    document.getElementById("quote-review-grand-total").textContent = formatKES(grand);
+    quote.items.forEach(it => grand += (it.quotedPrice || 0) * it.qty);
     quote.quotedPrice = grand;
+    document.getElementById("quote-review-grand-total").textContent = formatKES(grand);
 }
 
 function approveQuotation(quoteId) {
     const quote = quotations.find(q => q.id === quoteId);
     if (!quote) return;
 
-    const validityVal = document.getElementById("quote-validity").value;
-    if (!validityVal) {
-        alert("Please set a quote validity expiration date.");
-        return;
-    }
-
     quote.status = "approved";
-    quote.validUntil = validityVal;
+    quote.validUntil = document.getElementById("quote-validity").value || "2026-09-30";
+    syncAllState();
     
-    // Calculate final price if not touched
-    let finalTotal = 0;
-    quote.items.forEach(item => {
-        if (!item.quotedPrice) {
-            item.quotedPrice = getProductBySku(item.sku).salePrice;
-        }
-        finalTotal += item.quotedPrice * item.qty;
-    });
-    quote.quotedPrice = finalTotal;
-
     selectQuotation(quoteId);
     renderQuotesInbox();
-    alert(`Quotation ${quoteId} approved! Details sent back to customer callback channels.`);
+    renderCustomerQuotesTracker();
+    alert(`Quotation ${quoteId} approved!`);
 }
 
-function rejectQuotation(quoteId) {
-    if (!confirm("Are you sure you want to reject this quotation?")) return;
-    
-    quotations = quotations.filter(q => q.id !== quoteId);
-    selectedQuoteId = null;
-    
-    selectQuotation(null);
-    renderQuotesInbox();
-}
-
-function convertQuoteToOrder(quoteId) {
-    const quote = quotations.find(q => q.id === quoteId);
-    if (!quote) return;
-
-    // Confirm inventory availability before converting
-    for (const item of quote.items) {
-        const prod = getProductBySku(item.sku);
-        if (prod.stockQty < item.qty) {
-            alert(`Cannot convert quote. Item "${prod.name}" has insufficient stock (${prod.stockQty} left, quote requested ${item.qty}).`);
-            return;
-        }
-    }
-
-    // Deduct inventory
-    const itemsDescription = [];
-    quote.items.forEach(item => {
-        const prod = getProductBySku(item.sku);
-        prod.stockQty -= item.qty;
-        itemsDescription.push(`${prod.name} (x${item.qty})`);
-        
-        // Stock logs
-        logStockChange(prod.sku, prod.name, -item.qty, `Converted from Quotation ${quote.id}`, "Store Manager");
-    });
-
-    // Create Order
-    const orderId = "ORD-" + Math.floor(1000 + Math.random() * 9000);
-    const dateToday = new Date().toISOString().split('T')[0];
-
-    orders.unshift({
-        id: orderId,
-        date: dateToday,
-        items: itemsDescription.join(', '),
-        type: "Pickup", // Default for quotations
-        total: quote.quotedPrice,
-        status: "Confirmed"
-    });
-
-    quote.status = "converted";
-
-    selectQuotation(quoteId);
-    renderQuotesInbox();
-    renderCustomerOrdersTracker();
-    
-    alert(`Order ${orderId} created successfully from Quotation ${quote.id}!`);
-}
-
-// 10. STAFF DASHBOARD & REPORTS CONTROLLER
-
+// 12. DASHBOARD & REPORTS
 function renderDashboard() {
-    // 1. Stat cards
-    
-    // Daily sales calculation
-    // Today's orders values + POS values
     let totalSalesVal = 0;
-    const dateToday = new Date().toISOString().split('T')[0];
-    
-    orders.forEach(ord => {
-        if (ord.date === dateToday && ord.status !== "Cancelled") {
-            totalSalesVal += ord.total;
-        }
-    });
+    orders.forEach(ord => { if (ord.status !== "Cancelled") totalSalesVal += ord.total; });
 
-    // Seed/Audit log transactions that are POS Sales also add to today's sales
-    // In full setup we query sales table, here we aggregate orders + sales logs
-    document.getElementById("stat-daily-sales").textContent = formatKES(totalSalesVal);
-
-    // Stock Valuation (Selling price * qty)
     let stockValuation = 0;
     let lowStockCount = 0;
     products.forEach(p => {
         stockValuation += p.salePrice * p.stockQty;
-        if (p.stockQty <= p.reorderLevel) {
-            lowStockCount++;
-        }
+        if (p.stockQty <= p.reorderLevel) lowStockCount++;
     });
+
+    document.getElementById("stat-daily-sales").textContent = formatKES(totalSalesVal);
     document.getElementById("stat-stock-valuation").textContent = formatKES(stockValuation);
     document.getElementById("stat-low-stock-count").textContent = lowStockCount;
 
-    // Quote conversion rates
-    const totalQuotes = quotations.length;
-    const convertedQuotes = quotations.filter(q => q.status === "converted").length;
-    const conversionRate = totalQuotes > 0 ? Math.round((convertedQuotes / totalQuotes) * 100) : 0;
-    
-    document.getElementById("stat-quote-conversion").textContent = `${conversionRate}%`;
-    document.getElementById("stat-quote-numbers").textContent = `${convertedQuotes} of ${totalQuotes} converted`;
-
-    // 2. Bar Chart updates
-    const todayChartBar = document.getElementById("today-chart-bar");
-    if (todayChartBar) {
-        // scale height depending on sales value (capped at KES 50k for max scale height)
-        const scaleVal = Math.min(100, Math.max(5, Math.round((totalSalesVal / 50000) * 100)));
-        todayChartBar.style.height = `${scaleVal}%`;
-    }
-
-    // 3. Render Best Sellers list (mockup based on stock levels and demo popularity)
-    const bestSellersDiv = document.getElementById("best-sellers-list-div");
-    
-    // Seed some counts
-    const popularity = [
-        { name: "Bamburi Tembo Cement (32.5N)", qtySold: 140 },
-        { name: "Crown Paints Silk Emulsion Cream (4L)", qtySold: 48 },
-        { name: "Reinforcement Steel Bar D12 (12mm)", qtySold: 35 },
-        { name: "Tolsen Tape Measure 8M/26ft", qtySold: 28 }
-    ];
-
-    bestSellersDiv.innerHTML = popularity.map(pop => `
-        <div class="best-seller-item">
-            <span>${pop.name}</span>
-            <span class="qty-badge">${pop.qtySold} sold</span>
-        </div>
-    `).join('');
-
-    // 4. Render Helpline Callbacks list
     renderCallbackRequestsLog();
 }
 
 function renderCallbackRequestsLog() {
     const tbody = document.getElementById("callback-log-tbody");
-    if (callbacks.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-list-msg">No callback requests logged.</td></tr>`;
-        return;
-    }
-
     tbody.innerHTML = callbacks.map(cb => `
         <tr>
-            <td style="font-size:0.75rem; color:var(--text-muted);">${cb.timestamp}</td>
+            <td style="font-size:0.75rem;">${cb.timestamp}</td>
             <td style="font-weight:600;">${cb.name}</td>
-            <td><a href="tel:${cb.phone}" style="color:var(--accent); font-weight:500;">${cb.phone}</a></td>
+            <td><a href="tel:${cb.phone}">${cb.phone}</a></td>
             <td>${cb.query}</td>
-            <td>
-                <span class="quote-status-badge ${cb.status === 'completed' ? 'status-converted' : 'status-pending'}">
-                    ${cb.status}
-                </span>
-            </td>
-            <td>
-                ${cb.status === 'pending' ? `
-                    <button class="btn-primary" style="padding:2px 8px; font-size:0.75rem;" onclick="resolveCallback('${cb.id}')">
-                        Mark Resolved
-                    </button>
-                ` : `
-                    <span class="text-muted" style="font-size:0.8rem;">Resolved</span>
-                `}
-            </td>
+            <td><span class="quote-status-badge ${cb.status === 'completed' ? 'status-converted' : 'status-pending'}">${cb.status}</span></td>
+            <td>${cb.status === 'pending' ? `<button class="btn-primary" style="padding:2px 8px; font-size:0.75rem;" onclick="resolveCallback('${cb.id}')">Resolve</button>` : 'Resolved'}</td>
         </tr>
     `).join('');
 }
@@ -1502,20 +1305,15 @@ function renderCallbackRequestsLog() {
 function resolveCallback(cbId) {
     const cb = callbacks.find(c => c.id === cbId);
     if (!cb) return;
-
     cb.status = "completed";
+    syncAllState();
     renderCallbackRequestsLog();
-    renderDashboard();
-    alert(`Callback request for ${cb.name} marked as completed.`);
 }
 
-// 11. INITIALIZATION ON PAGE LOAD
+// 13. INITIALIZATION ON PAGE LOAD
 window.onload = function() {
-    // 1. Render elements
     renderCustomerCatalog();
     renderCustomerOrdersTracker();
+    renderCustomerQuotesTracker();
     updateQuotesBadge();
-    
-    // 2. Sync POS Category filter
-    renderPOSCatalog();
 };

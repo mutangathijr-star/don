@@ -55,6 +55,7 @@
                 <div class="nav-links">
                     <a href="#catalog-section" class="nav-link active"><i class="fa-solid fa-boxes-stacked"></i> Browse Catalog</a>
                     <a href="#quotation-section" class="nav-link"><i class="fa-solid fa-file-invoice"></i> Request Quote</a>
+                    <a href="#cust-quotes-section" class="nav-link"><i class="fa-solid fa-file-signature"></i> Track Quotes</a>
                     <a href="#locator-section" class="nav-link"><i class="fa-solid fa-map-location-dot"></i> Store Locator</a>
                 </div>
                 <div class="nav-actions">
@@ -106,7 +107,7 @@
                             <div class="header-icon"><i class="fa-solid fa-file-pdf"></i></div>
                             <div>
                                 <h3>Bulk Material Quotation Request</h3>
-                                <p>Planning a construction or renovation project? List your bulk list and we will respond with specialized pricing in minutes.</p>
+                                <p>Planning a construction or renovation project? List your bulk items and we will respond with specialized pricing in minutes.</p>
                             </div>
                         </div>
                         <form id="quote-request-form" onsubmit="submitQuoteRequest(event)">
@@ -142,6 +143,32 @@
                             </div>
                             <button type="submit" class="btn-primary">Submit Quotation Request</button>
                         </form>
+                    </div>
+
+                    <!-- Customer Quotes Tracker Section -->
+                    <div id="cust-quotes-section" class="content-section card-panel">
+                        <div class="section-title-bar">
+                            <h3>Track Your Quotations</h3>
+                            <span style="font-size:0.8rem; color:var(--text-secondary);">When staff approves your quote, you can convert it to an order directly below!</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Quote ID</th>
+                                        <th>Date</th>
+                                        <th>Requested Items / Description</th>
+                                        <th>Quoted Price</th>
+                                        <th>Validity Expiry</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customer-quotes-tracker-tbody">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- Store Locator Section -->
@@ -206,12 +233,36 @@
                             <label for="fulfillment-choice">Fulfillment:</label>
                             <select id="fulfillment-choice" onchange="updateFulfillmentOptions()">
                                 <option value="pickup">Store Pickup (Free)</option>
-                                <option value="delivery">Express Delivery (+ KES 1,200)</option>
+                                <option value="delivery">Express Delivery (Select Region)</option>
                             </select>
                         </div>
-                        <div class="summary-row hidden" id="delivery-address-group">
-                            <input type="text" id="delivery-address" placeholder="Delivery Address (e.g. Kilimani, Nairobi)">
+
+                        <!-- Advanced Delivery Options Box -->
+                        <div class="delivery-details-box hidden" id="delivery-details-box">
+                            <div class="form-group">
+                                <label for="delivery-recipient">Recipient Name</label>
+                                <input type="text" id="delivery-recipient" placeholder="Recipient Name">
+                            </div>
+                            <div class="form-group">
+                                <label for="delivery-phone">Recipient Phone</label>
+                                <input type="tel" id="delivery-phone" placeholder="e.g. 0712345678">
+                            </div>
+                            <div class="form-group">
+                                <label for="delivery-area">Delivery Area / Region</label>
+                                <select id="delivery-area" onchange="recalcCustomerCartTotal()">
+                                    <option value="nairobi-cbd" data-fee="500">Nairobi CBD / Industrial Area (+ KES 500)</option>
+                                    <option value="westlands" data-fee="800">Westlands / Parklands (+ KES 800)</option>
+                                    <option value="kilimani" data-fee="1000">Kilimani / Lavington (+ KES 1,000)</option>
+                                    <option value="karen" data-fee="2000">Karen / Langata (+ KES 2,000)</option>
+                                    <option value="thika-road" data-fee="1500">Kasarani / Ruiru / Thika Rd (+ KES 1,500)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="delivery-address">Exact Street Address / Landmark</label>
+                                <input type="text" id="delivery-address" placeholder="e.g. Plot 4, Commercial Street">
+                            </div>
                         </div>
+
                         <div class="summary-row total-row">
                             <span>Total:</span>
                             <span id="cart-total">KES 0.00</span>
@@ -241,7 +292,7 @@
                                 <th>Order ID</th>
                                 <th>Date</th>
                                 <th>Items</th>
-                                <th>Type</th>
+                                <th>Fulfillment</th>
                                 <th>Total</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -264,7 +315,7 @@
                         <i class="fa-solid fa-lock" style="font-size: 3rem; color: var(--accent);"></i>
                     </div>
                     <h3>Staff Authentication Required</h3>
-                    <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:20px;">Enter security PIN to access POS billing, inventory edits, and reports.</p>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:20px;">Enter security PIN to access POS billing, inventory edits, dispatch, and reports.</p>
                     <form onsubmit="handleStaffLogin(event)">
                         <div class="form-group" style="text-align: left; margin-bottom: 15px;">
                             <label for="staff-pin-input">Access PIN</label>
@@ -295,6 +346,10 @@
                         </button>
                         <button class="staff-nav-item" onclick="switchStaffTab('inventory')">
                             <i class="fa-solid fa-boxes-packing"></i> Inventory & Logs
+                        </button>
+                        <button class="staff-nav-item" onclick="switchStaffTab('dispatch')">
+                            <i class="fa-solid fa-truck-ramp-box"></i> Orders & Dispatch
+                            <span class="count-badge hidden" id="pending-orders-badge">0</span>
                         </button>
                         <button class="staff-nav-item" id="quote-tab-nav" onclick="switchStaffTab('quotes')">
                             <i class="fa-solid fa-file-signature"></i> Quotations
@@ -378,9 +433,14 @@
                     <div id="staff-tab-inventory" class="staff-tab-panel hidden">
                         <div class="section-title-bar">
                             <h3>Product Stock Control</h3>
-                            <button class="btn-primary" onclick="openAddProductModal()">
-                                <i class="fa-solid fa-plus"></i> Add New Product
-                            </button>
+                            <div style="display:flex; gap:10px;">
+                                <button class="btn-secondary" onclick="openCategoryManagerModal()">
+                                    <i class="fa-solid fa-tags"></i> Manage Categories
+                                </button>
+                                <button class="btn-primary" onclick="openAddProductModal()">
+                                    <i class="fa-solid fa-plus"></i> Add New Product
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Product Table -->
@@ -442,7 +502,33 @@
                         </div>
                     </div>
 
-                    <!-- TAB 3: QUOTATION MANAGEMENT -->
+                    <!-- TAB 3: ORDERS & DISPATCH MANAGEMENT -->
+                    <div id="staff-tab-dispatch" class="staff-tab-panel hidden">
+                        <h3>Orders & Delivery Dispatch Panel</h3>
+                        <div class="card-panel" style="margin-top:1.5rem;">
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Date</th>
+                                            <th>Customer Details</th>
+                                            <th>Items Purchased</th>
+                                            <th>Type / Area</th>
+                                            <th>Total</th>
+                                            <th>Dispatch Status</th>
+                                            <th>Advance Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="staff-dispatch-table-tbody">
+                                        <!-- Dynamically rendered -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: QUOTATION MANAGEMENT -->
                     <div id="staff-tab-quotes" class="staff-tab-panel hidden">
                         <h3>Quotation Inbox & Approvals</h3>
                         <div class="quotes-layout">
@@ -466,7 +552,7 @@
                         </div>
                     </div>
 
-                    <!-- TAB 4: DASHBOARD & REPORTS -->
+                    <!-- TAB 5: DASHBOARD & REPORTS -->
                     <div id="staff-tab-dashboard" class="staff-tab-panel hidden">
                         <!-- Stat Cards Grid -->
                         <div class="stat-cards-grid">
@@ -586,6 +672,32 @@
 
     <!-- ================= MODALS & POPUPS ================= -->
     
+    <!-- Modal: Manage Categories -->
+    <div class="modal-overlay hidden" id="modal-categories">
+        <div class="modal-box modal-small">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-tags"></i> Manage Categories</h3>
+                <button class="close-modal-btn" onclick="closeCategoryManagerModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-category-form" onsubmit="submitAddCategory(event)">
+                    <div class="form-group">
+                        <label for="new-cat-name">Add New Category</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="new-cat-name" required placeholder="e.g. Timber / Safety Gear">
+                            <button type="submit" class="btn-primary">Add</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="divider" style="margin: 15px 0;"></div>
+                <label>Existing Categories</label>
+                <ul class="category-manager-list" id="category-manager-list-ul">
+                    <!-- Loaded dynamically -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Request Callback -->
     <div class="modal-overlay hidden" id="modal-callback">
         <div class="modal-box">
@@ -637,12 +749,7 @@
                         <div class="form-group">
                             <label for="prod-category">Category</label>
                             <select id="prod-category" required>
-                                <option value="Cement">Cement</option>
-                                <option value="Steel">Steel</option>
-                                <option value="Paint">Paint</option>
-                                <option value="Tools">Tools</option>
-                                <option value="Electricals">Electricals</option>
-                                <option value="Plumbing">Plumbing</option>
+                                <!-- Loaded dynamically -->
                             </select>
                         </div>
                         <div class="form-group">

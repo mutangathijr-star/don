@@ -1,62 +1,48 @@
 /* ==========================================================================
-   Simba Hardware Hub Design System & Stylesheet
+   Simba Hardware Hub — Custom Color Palette Stylesheet
    ========================================================================== */
 
-/* 1. CSS VARIABLES & THEMES */
+/* 1. CSS VARIABLES & USER PALETTE */
 :root {
     /* Fonts */
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Inter', sans-serif;
 
-    /* Theme colors: Dark Mode First */
-    --bg-primary: #090d16;
-    --bg-secondary: #111827;
-    --bg-card: #1f2937;
-    --text-primary: #f3f4f6;
-    --text-secondary: #9ca3af;
-    --text-muted: #6b7280;
-    --border-color: #374151;
-    --border-light: rgba(255, 255, 255, 0.08);
+    /* User Requested Palette */
+    --primary: #0F2D4A;        /* Deep Industrial Navy */
+    --bg-primary: #F7F8FA;     /* Page Background */
+    --bg-secondary: #FFFFFF;   /* Container Panels */
+    --bg-card: #FFFFFF;        /* Card Elements */
+    --text-primary: #1F2937;   /* Charcoal Slate Typography */
+    --text-secondary: #4B5563; /* Subheadings & Labels */
+    --text-muted: #9CA3AF;     /* Muted / Secondary Info */
+    --border-color: #E5E7EB;   /* Border Divider */
+    --border-light: #F3F4F6;   /* Subtle Border */
 
-    /* Action colors */
-    --accent: #f97316; /* Safety Orange */
-    --accent-hover: #ea580c;
-    --accent-glow: rgba(249, 115, 22, 0.15);
+    /* Action & Status colors */
+    --accent: #F28C28;         /* Safety Amber / Button Orange */
+    --accent-hover: #D9771E;
+    --accent-glow: rgba(242, 140, 40, 0.15);
     
-    --green: #10b981;
+    --green: #10B981;
     --green-bg: rgba(16, 185, 129, 0.1);
-    --red: #ef4444;
+    --red: #EF4444;
     --red-bg: rgba(239, 68, 68, 0.1);
-    --blue: #3b82f6;
-    --blue-bg: rgba(59, 130, 246, 0.1);
-    --amber: #f59e0b;
+    --blue: #0F2D4A;
+    --blue-bg: rgba(15, 45, 74, 0.1);
+    --amber: #F59E0B;
     --amber-bg: rgba(245, 158, 11, 0.1);
 
     /* Layout values */
     --banner-height: 70px;
     --sidebar-width: 260px;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+    --shadow-sm: 0 2px 8px rgba(15, 45, 74, 0.05);
+    --shadow-md: 0 8px 24px rgba(15, 45, 74, 0.08);
+    --shadow-lg: 0 16px 40px rgba(15, 45, 74, 0.12);
     --radius-sm: 6px;
     --radius-md: 12px;
     --radius-lg: 20px;
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Light Theme Variables */
-body.light-mode {
-    --bg-primary: #f3f4f6;
-    --bg-secondary: #ffffff;
-    --bg-card: #f9fafb;
-    --text-primary: #111827;
-    --text-secondary: #4b5563;
-    --text-muted: #9ca3af;
-    --border-color: #e5e7eb;
-    --border-light: rgba(0, 0, 0, 0.05);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.05);
-    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.08);
 }
 
 /* 2. BASE RESET & GLOBALS */
@@ -84,6 +70,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-weight: 600;
     letter-spacing: -0.02em;
+    color: var(--text-primary);
 }
 
 a {
@@ -113,11 +100,8 @@ button {
     background: var(--bg-primary);
 }
 ::-webkit-scrollbar-thumb {
-    background: var(--border-color);
+    background: #CBD5E1;
     border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
 }
 
 /* Utility Helpers */
@@ -128,7 +112,7 @@ button {
 .text-red { color: var(--red) !important; }
 .text-amber { color: var(--amber) !important; }
 .bg-orange { background-color: var(--accent-glow) !important; color: var(--accent) !important; }
-.bg-blue { background-color: var(--blue-bg) !important; color: var(--blue) !important; }
+.bg-blue { background-color: var(--blue-bg) !important; color: var(--primary) !important; }
 .bg-green { background-color: var(--green-bg) !important; color: var(--green) !important; }
 .bg-red { background-color: var(--red-bg) !important; color: var(--red) !important; }
 
@@ -139,18 +123,15 @@ button {
     left: 0;
     right: 0;
     height: var(--banner-height);
-    background-color: rgba(17, 24, 39, 0.85);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-light);
+    background-color: var(--primary);
+    color: #FFFFFF;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 2rem;
     z-index: 100;
-    box-shadow: var(--shadow-sm);
-}
-body.light-mode .app-banner {
-    background-color: rgba(255, 255, 255, 0.85);
+    box-shadow: var(--shadow-md);
 }
 
 .banner-brand {
@@ -162,18 +143,18 @@ body.light-mode .app-banner {
 .logo-icon {
     font-size: 2rem;
     color: var(--accent);
-    filter: drop-shadow(0 0 8px var(--accent-glow));
 }
 
 .logo-text h1 {
     font-size: 1.25rem;
     font-weight: 800;
     line-height: 1;
+    color: #FFFFFF;
 }
 
 .logo-text span {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.7);
     letter-spacing: 0.1em;
     font-weight: 600;
 }
@@ -184,14 +165,13 @@ body.light-mode .app-banner {
     background-color: rgba(0, 0, 0, 0.2);
     padding: 4px;
     border-radius: var(--radius-md);
-    border: 1px solid var(--border-light);
 }
 
 .switcher-btn {
     padding: 8px 18px;
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.8);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -199,13 +179,13 @@ body.light-mode .app-banner {
 }
 
 .switcher-btn:hover {
-    color: var(--text-primary);
+    color: #FFFFFF;
 }
 
 .switcher-btn.active {
     background-color: var(--accent);
-    color: white;
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(242, 140, 40, 0.3);
 }
 
 .banner-meta {
@@ -216,7 +196,7 @@ body.light-mode .app-banner {
 
 .meta-location {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.8);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -225,20 +205,14 @@ body.light-mode .app-banner {
 .theme-toggle {
     width: 38px;
     height: 38px;
-    background-color: var(--bg-card);
+    background-color: rgba(255, 255, 255, 0.1);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border: 1px solid var(--border-light);
-    color: var(--text-secondary);
+    color: #FFFFFF;
     transition: var(--transition);
-}
-
-.theme-toggle:hover {
-    color: var(--text-primary);
-    transform: rotate(15deg);
 }
 
 /* 4. MAIN LAYOUT CONTAINER */
@@ -261,13 +235,14 @@ body.light-mode .app-banner {
 .portal-nav {
     position: sticky;
     top: var(--banner-height);
-    background-color: var(--bg-secondary);
+    background-color: #FFFFFF;
     border-bottom: 1px solid var(--border-color);
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     padding: 0.75rem 2rem;
     z-index: 90;
+    box-shadow: var(--shadow-sm);
 }
 
 .nav-search {
@@ -311,12 +286,13 @@ body.light-mode .app-banner {
 }
 
 .nav-link:hover {
-    color: var(--text-primary);
+    color: var(--primary);
 }
 
 .nav-link.active {
-    color: var(--accent);
-    background-color: var(--accent-glow);
+    color: var(--primary);
+    background-color: var(--blue-bg);
+    font-weight: 600;
 }
 
 .nav-actions {
@@ -327,7 +303,7 @@ body.light-mode .app-banner {
 }
 
 .helpline-btn-nav {
-    background-color: var(--bg-card);
+    background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     padding: 6px 14px;
@@ -345,7 +321,7 @@ body.light-mode .app-banner {
 .cart-trigger {
     width: 38px;
     height: 38px;
-    background-color: var(--bg-card);
+    background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 50%;
     display: flex;
@@ -356,7 +332,7 @@ body.light-mode .app-banner {
 }
 
 .cart-trigger i {
-    color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
 .cart-badge {
@@ -389,8 +365,8 @@ body.light-mode .app-banner {
 
 /* Hero promo banner */
 .hero-promo {
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.12) 0%, rgba(139, 92, 246, 0.08) 50%, rgba(0, 0, 0, 0.1) 100%), var(--bg-secondary);
-    border: 1px solid var(--border-light);
+    background: linear-gradient(135deg, #0F2D4A 0%, #1E3A8A 100%);
+    color: #FFFFFF;
     border-radius: var(--radius-lg);
     padding: 2.5rem;
     display: flex;
@@ -399,6 +375,7 @@ body.light-mode .app-banner {
     margin-bottom: 2rem;
     overflow: hidden;
     position: relative;
+    box-shadow: var(--shadow-md);
 }
 
 .promo-info {
@@ -409,8 +386,8 @@ body.light-mode .app-banner {
 .promo-info .badge {
     display: inline-block;
     padding: 4px 10px;
-    background-color: var(--accent-glow);
-    color: var(--accent);
+    background-color: var(--accent);
+    color: #FFFFFF;
     font-size: 0.75rem;
     font-weight: 700;
     border-radius: var(--radius-sm);
@@ -423,18 +400,11 @@ body.light-mode .app-banner {
     font-weight: 800;
     line-height: 1.15;
     margin-bottom: 10px;
-    background: linear-gradient(to right, #ffffff, #d1d5db);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-body.light-mode .promo-info h2 {
-    background: none;
-    -webkit-text-fill-color: initial;
-    color: var(--text-primary);
+    color: #FFFFFF;
 }
 
 .promo-info p {
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.85);
     margin-bottom: 20px;
 }
 
@@ -447,7 +417,7 @@ body.light-mode .promo-info h2 {
     padding: 10px 20px;
     border-radius: var(--radius-md);
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+    box-shadow: 0 4px 12px rgba(242, 140, 40, 0.3);
 }
 
 .promo-btn:hover {
@@ -457,7 +427,7 @@ body.light-mode .promo-info h2 {
 
 .promo-visual {
     font-size: 8rem;
-    color: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.08);
     position: absolute;
     right: 2rem;
     bottom: -1rem;
@@ -494,7 +464,7 @@ body.light-mode .promo-info h2 {
 
 .category-chip {
     padding: 6px 14px;
-    background-color: var(--bg-secondary);
+    background-color: #FFFFFF;
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
     font-size: 0.85rem;
@@ -504,14 +474,14 @@ body.light-mode .promo-info h2 {
 }
 
 .category-chip:hover {
-    border-color: var(--text-secondary);
-    color: var(--text-primary);
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 .category-chip.active {
-    background-color: var(--accent-glow);
-    border-color: var(--accent);
-    color: var(--accent);
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #FFFFFF;
 }
 
 /* PRODUCT CARDS & GRID */
@@ -523,18 +493,19 @@ body.light-mode .promo-info h2 {
 
 .product-card {
     background-color: var(--bg-card);
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
     position: relative;
     transition: var(--transition);
+    box-shadow: var(--shadow-sm);
 }
 
 .product-card:hover {
     transform: translateY(-5px);
-    border-color: rgba(249, 115, 22, 0.4);
+    border-color: var(--accent);
     box-shadow: var(--shadow-md);
 }
 
@@ -556,17 +527,10 @@ body.light-mode .promo-info h2 {
 .tag-lowstock {
     background-color: var(--amber-bg);
     color: var(--amber);
-    animation: pulseGlow 2s infinite;
 }
 .tag-outstock {
     background-color: var(--red-bg);
     color: var(--red);
-}
-
-@keyframes pulseGlow {
-    0% { opacity: 0.8; }
-    50% { opacity: 0.5; }
-    100% { opacity: 0.8; }
 }
 
 .prod-visual-img {
@@ -574,15 +538,15 @@ body.light-mode .promo-info h2 {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0, 0, 0, 0.15);
+    background-color: var(--bg-primary);
     border-radius: 8px;
     margin-bottom: 12px;
-    color: var(--text-secondary);
+    color: var(--primary);
 }
 
 .prod-visual-img i {
     font-size: 3rem;
-    opacity: 0.5;
+    opacity: 0.7;
 }
 
 .prod-category-tag {
@@ -625,7 +589,7 @@ body.light-mode .promo-info h2 {
 .prod-price {
     font-size: 1.15rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--primary);
 }
 
 .prod-unit {
@@ -659,7 +623,7 @@ body.light-mode .promo-info h2 {
 
 /* CARD PANELS & FORMS */
 .card-panel {
-    background-color: var(--bg-secondary);
+    background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: 2rem;
@@ -672,7 +636,7 @@ body.light-mode .promo-info h2 {
     align-items: center;
     gap: 15px;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 1rem;
 }
 
@@ -730,7 +694,7 @@ input:focus, select:focus, textarea:focus {
     padding: 10px 22px;
     font-weight: 600;
     border-radius: var(--radius-sm);
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+    box-shadow: 0 4px 12px rgba(242, 140, 40, 0.25);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -742,7 +706,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .btn-secondary {
-    background-color: var(--bg-card);
+    background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     padding: 10px 20px;
@@ -755,7 +719,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 .btn-secondary:hover {
-    border-color: var(--text-secondary);
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 .block-btn {
@@ -765,7 +730,7 @@ input:focus, select:focus, textarea:focus {
 
 /* Delivery Details Drawer Box */
 .delivery-details-box {
-    background-color: var(--bg-card);
+    background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
     padding: 10px;
     border-radius: 8px;
@@ -773,10 +738,6 @@ input:focus, select:focus, textarea:focus {
     flex-direction: column;
     gap: 8px;
     margin-bottom: 8px;
-}
-
-.delivery-details-box .form-group {
-    margin-bottom: 0;
 }
 
 .delivery-details-box input, .delivery-details-box select {
@@ -816,21 +777,13 @@ input:focus, select:focus, textarea:focus {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     padding: 12px;
-    background-color: var(--bg-card);
+    background-color: var(--bg-primary);
 }
 
 .quote-builder-inputs {
     display: flex;
     gap: 10px;
     margin-bottom: 12px;
-}
-
-.quote-builder-inputs select {
-    flex: 2;
-}
-
-.quote-builder-inputs input {
-    width: 90px;
 }
 
 .quote-items-list {
@@ -850,10 +803,6 @@ input:focus, select:focus, textarea:focus {
     border-bottom: 1px dashed var(--border-color);
 }
 
-.quote-items-list li:last-child {
-    border-bottom: none;
-}
-
 .quote-items-list li .remove-btn {
     color: var(--red);
     cursor: pointer;
@@ -871,7 +820,7 @@ input:focus, select:focus, textarea:focus {
 /* SHOPPING CART DRAWER */
 .cart-drawer {
     width: 360px;
-    background-color: var(--bg-secondary);
+    background-color: #FFFFFF;
     border-left: 1px solid var(--border-color);
     position: fixed;
     right: -360px;
@@ -894,16 +843,19 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background-color: var(--primary);
+    color: #FFFFFF;
 }
 
 .drawer-header h4 {
     font-size: 1.15rem;
     font-weight: 700;
+    color: #FFFFFF;
 }
 
 .close-drawer-btn {
     font-size: 1.5rem;
-    color: var(--text-secondary);
+    color: #FFFFFF;
 }
 
 .drawer-items {
@@ -919,15 +871,13 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     align-items: center;
     gap: 10px;
-    background-color: var(--bg-card);
+    background-color: var(--bg-primary);
     padding: 10px;
     border-radius: 8px;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border-color);
 }
 
-.cart-item-details {
-    flex: 1;
-}
+.cart-item-details flex: 1;
 
 .cart-item-details h5 {
     font-size: 0.9rem;
@@ -951,7 +901,7 @@ input:focus, select:focus, textarea:focus {
     width: 20px;
     height: 20px;
     border-radius: 4px;
-    background-color: var(--bg-primary);
+    background-color: #FFFFFF;
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     display: flex;
@@ -1001,26 +951,10 @@ input:focus, select:focus, textarea:focus {
     font-size: 0.9rem;
 }
 
-.summary-row label {
-    display: flex;
-    align-items: center;
-}
-
-.summary-row select {
-    padding: 4px 8px;
-    font-size: 0.85rem;
-}
-
-.summary-row input {
-    width: 100%;
-    font-size: 0.85rem;
-    padding: 6px 10px;
-}
-
 .total-row {
     font-size: 1.15rem;
     font-weight: 800;
-    color: var(--text-primary);
+    color: var(--primary);
     border-top: 1px solid var(--border-color);
     padding-top: 8px;
 }
@@ -1076,7 +1010,7 @@ input:focus, select:focus, textarea:focus {
     position: relative;
     height: 100%;
     min-height: 250px;
-    background-color: #1e293b;
+    background-color: #0F2D4A;
     border-radius: var(--radius-md);
     overflow: hidden;
 }
@@ -1084,8 +1018,8 @@ input:focus, select:focus, textarea:focus {
 .map-grid-lines {
     position: absolute;
     inset: 0;
-    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), 
-                      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), 
+                      linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
     background-size: 20px 20px;
 }
 
@@ -1118,13 +1052,13 @@ input:focus, select:focus, textarea:focus {
     top: 57%;
     left: 50%;
     transform: translateX(-50%);
-    background-color: var(--bg-primary);
+    background-color: #FFFFFF;
     border: 1px solid var(--border-color);
     padding: 2px 8px;
     border-radius: 4px;
     font-size: 0.75rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--primary);
     white-space: nowrap;
     z-index: 3;
 }
@@ -1134,7 +1068,7 @@ input:focus, select:focus, textarea:focus {
     bottom: 10px;
     right: 10px;
     font-size: 0.65rem;
-    color: var(--text-muted);
+    color: rgba(255,255,255,0.7);
     font-family: monospace;
 }
 
@@ -1159,15 +1093,15 @@ input:focus, select:focus, textarea:focus {
 .data-table th {
     font-family: var(--font-heading);
     font-weight: 600;
-    color: var(--text-secondary);
-    background-color: rgba(0, 0, 0, 0.1);
+    color: var(--primary);
+    background-color: var(--bg-primary);
     text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.05em;
 }
 
 .data-table tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.02);
+    background-color: var(--bg-primary);
 }
 
 .table-toolbar {
@@ -1175,15 +1109,6 @@ input:focus, select:focus, textarea:focus {
     justify-content: space-between;
     gap: 15px;
     margin-bottom: 1.25rem;
-}
-
-.table-toolbar input {
-    max-width: 300px;
-    flex: 1;
-}
-
-.table-toolbar select {
-    width: 200px;
 }
 
 /* STAFF TERMINAL LAYOUT */
@@ -1194,7 +1119,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 .staff-sidebar {
-    background-color: var(--bg-secondary);
+    background-color: var(--primary);
+    color: #FFFFFF;
     border-right: 1px solid var(--border-color);
     padding: 1.5rem 1rem;
     display: flex;
@@ -1207,20 +1133,28 @@ input:focus, select:focus, textarea:focus {
     align-items: center;
     gap: 12px;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border-light);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .staff-avatar {
     font-size: 2.2rem;
-    color: var(--text-secondary);
-    background-color: var(--bg-primary);
+    color: #FFFFFF;
+    background-color: rgba(255, 255, 255, 0.1);
     width: 46px;
     height: 46px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--border-color);
+}
+
+.staff-profile h5 {
+    color: #FFFFFF;
+    font-size: 0.95rem;
+}
+
+.staff-profile span {
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .staff-nav-menu {
@@ -1234,7 +1168,7 @@ input:focus, select:focus, textarea:focus {
     align-items: center;
     gap: 12px;
     padding: 10px 14px;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.8);
     font-weight: 600;
     font-size: 0.9rem;
     border-radius: var(--radius-sm);
@@ -1244,13 +1178,13 @@ input:focus, select:focus, textarea:focus {
 }
 
 .staff-nav-item:hover {
-    color: var(--text-primary);
-    background-color: var(--bg-primary);
+    color: #FFFFFF;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .staff-nav-item.active {
-    color: var(--accent);
-    background-color: var(--accent-glow);
+    color: #FFFFFF;
+    background-color: var(--accent);
 }
 
 .count-badge {
@@ -1302,8 +1236,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 .pos-item-card {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-light);
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 10px;
     display: flex;
@@ -1404,7 +1338,7 @@ input:focus, select:focus, textarea:focus {
 
 .status-pending { background-color: var(--amber-bg); color: var(--amber); }
 .status-approved { background-color: var(--green-bg); color: var(--green); }
-.status-converted { background-color: var(--blue-bg); color: var(--blue); }
+.status-converted { background-color: var(--blue-bg); color: var(--primary); }
 
 /* REPORTING & DASHBOARD VISUALS */
 .stat-cards-grid {
@@ -1415,13 +1349,14 @@ input:focus, select:focus, textarea:focus {
 }
 
 .stat-card {
-    background-color: var(--bg-secondary);
+    background-color: #FFFFFF;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 1.25rem;
     display: flex;
     align-items: center;
     gap: 15px;
+    box-shadow: var(--shadow-sm);
 }
 
 .stat-icon {
@@ -1438,7 +1373,7 @@ input:focus, select:focus, textarea:focus {
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(15, 45, 74, 0.6);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
@@ -1448,7 +1383,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .modal-box {
-    background-color: var(--bg-secondary);
+    background-color: #FFFFFF;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     width: 90%;
@@ -1469,11 +1404,17 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background-color: var(--primary);
+    color: #FFFFFF;
+}
+
+.modal-header h3 {
+    color: #FFFFFF;
 }
 
 .close-modal-btn {
     font-size: 1.5rem;
-    color: var(--text-secondary);
+    color: #FFFFFF;
 }
 
 .modal-body {
@@ -1486,13 +1427,13 @@ input:focus, select:focus, textarea:focus {
 }
 
 .receipt-paper {
-    background-color: #fcfcfc;
+    background-color: #FCFCFC;
     color: #111;
     font-family: 'Courier New', Courier, monospace;
     padding: 1.5rem;
     border-radius: 4px;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-    border: 1px solid #ddd;
+    border: 1px solid #DDD;
     line-height: 1.4;
     font-size: 0.85rem;
 }
@@ -1501,7 +1442,7 @@ input:focus, select:focus, textarea:focus {
     position: fixed;
     bottom: 24px;
     right: 24px;
-    background-color: #25d366;
+    background-color: #25D366;
     color: white;
     padding: 10px 18px;
     border-radius: 30px;
@@ -1517,6 +1458,20 @@ input:focus, select:focus, textarea:focus {
 }
 
 .floating-helpline:hover {
-    background-color: #20ba5a;
+    background-color: #20BA5A;
     transform: translateY(-3px);
+}
+
+/* RESPONSIVENESS */
+@media (max-width: 992px) {
+    .staff-layout {
+        grid-template-columns: 1fr;
+    }
+    .pos-workspace {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .grid-2col {
+        grid-template-columns: 1fr;
+    }
 }

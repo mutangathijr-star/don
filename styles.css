@@ -1462,7 +1462,7 @@ input:focus, select:focus, textarea:focus {
     transform: translateY(-3px);
 }
 
-/* RESPONSIVENESS */
+/* RESPONSIVENESS & MOBILE PHONE OPTIMIZATIONS */
 @media (max-width: 992px) {
     .staff-layout {
         grid-template-columns: 1fr;
@@ -1475,3 +1475,106 @@ input:focus, select:focus, textarea:focus {
         grid-template-columns: 1fr;
     }
 }
+
+@media (max-width: 768px) {
+    .app-banner {
+        padding: 0 1rem;
+        height: auto;
+        min-height: 60px;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+    .app-container {
+        margin-top: 100px;
+    }
+    .banner-brand span {
+        display: none;
+    }
+    .banner-switcher {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+    }
+    .switcher-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+    .portal-nav {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 0.75rem 1rem;
+        top: 100px;
+    }
+    .nav-search {
+        max-width: 100%;
+    }
+    .nav-links {
+        justify-content: space-around;
+        gap: 8px;
+        font-size: 0.85rem;
+    }
+    .nav-link {
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    .hero-promo {
+        flex-direction: column;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .promo-info {
+        max-width: 100%;
+    }
+    .promo-info h2 {
+        font-size: 1.6rem;
+    }
+    .promo-visual {
+        display: none;
+    }
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    .cart-drawer {
+        width: 100%;
+        right: -100%;
+    }
+    .quotes-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .staff-content-view {
+        padding: 1rem;
+    }
+    .stat-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    .modal-box {
+        width: 95%;
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+    }
+    .pos-item-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .section-header h3 {
+        font-size: 1.25rem;
+    }
+    .floating-helpline span {
+        display: none;
+    }
+    .floating-helpline {
+        padding: 12px;
+        border-radius: 50%;
+    }
+}
+

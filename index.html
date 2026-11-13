@@ -55,6 +55,7 @@
                 <div class="nav-links">
                     <a href="#catalog-section" class="nav-link active"><i class="fa-solid fa-boxes-stacked"></i> Browse Catalog</a>
                     <a href="#quotation-section" class="nav-link"><i class="fa-solid fa-file-invoice"></i> Request Quote</a>
+                    <a href="#boq-scanner-section" class="nav-link"><i class="fa-solid fa-wand-magic-sparkles"></i> AI BOQ Scanner</a>
                     <a href="#cust-quotes-section" class="nav-link"><i class="fa-solid fa-file-signature"></i> Track Quotes</a>
                     <a href="#locator-section" class="nav-link"><i class="fa-solid fa-map-location-dot"></i> Store Locator</a>
                 </div>
@@ -143,6 +144,84 @@
                             </div>
                             <button type="submit" class="btn-primary">Submit Quotation Request</button>
                         </form>
+                    </div>
+
+                    <!-- AI BOQ Scanner Section -->
+                    <div id="boq-scanner-section" class="content-section card-panel ai-panel">
+                        <div class="card-header">
+                            <div class="header-icon ai-glow-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                            <div>
+                                <div class="badge-ai-pill"><i class="fa-solid fa-robot"></i> AI Powered</div>
+                                <h3>Contractor BOQ & Material List Scanner</h3>
+                                <p>Paste a contractor bill of quantities (BOQ), material notes, or handwritten project specs. Simba AI scans the text, matches products to our live inventory, and calculates your budget instantly.</p>
+                            </div>
+                        </div>
+
+                        <div class="boq-sample-pills">
+                            <span class="sample-label">Try quick samples:</span>
+                            <button type="button" class="sample-pill-btn" onclick="loadBOQSample('masonry')">🧱 Masonry & Foundation</button>
+                            <button type="button" class="sample-pill-btn" onclick="loadBOQSample('electrical')">⚡ Full House Electrical</button>
+                            <button type="button" class="sample-pill-btn" onclick="loadBOQSample('plumbing')">🚰 Bathroom & Plumbing</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="boq-raw-input">Paste Material List / BOQ Text</label>
+                            <textarea id="boq-raw-input" rows="5" placeholder="e.g.&#10;50 bags Bamburi Tembo Cement&#10;25 pieces D12 Reinforcement Steel Bar&#10;3 tins Crown Paints Vinyl Matt White (20L)&#10;10 pieces PPR Pipe 20mm&#10;1 roll single core 1.5mm electrical cable"></textarea>
+                        </div>
+
+                        <div class="boq-actions-bar">
+                            <button type="button" class="btn-primary" onclick="processBOQScan()">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Scan & Match Materials
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="clearBOQScanner()">
+                                <i class="fa-solid fa-rotate-left"></i> Clear
+                            </button>
+                        </div>
+
+                        <!-- Scan Results Container -->
+                        <div id="boq-results-container" class="boq-results-box hidden">
+                            <div class="boq-summary-header">
+                                <div class="boq-stat">
+                                    <span class="stat-num" id="boq-matched-count">0</span>
+                                    <span class="stat-lbl">Matched SKUs</span>
+                                </div>
+                                <div class="boq-stat">
+                                    <span class="stat-num" id="boq-items-detected">0</span>
+                                    <span class="stat-lbl">Items Parsed</span>
+                                </div>
+                                <div class="boq-stat total-stat">
+                                    <span class="stat-num text-green" id="boq-total-estimate">KES 0.00</span>
+                                    <span class="stat-lbl">Estimated Total</span>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="data-table boq-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Original Item In List</th>
+                                            <th>Matched Store SKU & Name</th>
+                                            <th>Qty</th>
+                                            <th>Unit Price</th>
+                                            <th>Line Total</th>
+                                            <th>Stock Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="boq-results-tbody">
+                                        <!-- Dynamically generated rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="boq-action-buttons">
+                                <button class="btn-primary" onclick="transferBOQToCart()">
+                                    <i class="fa-solid fa-cart-plus"></i> Add All Matched Items to Cart
+                                </button>
+                                <button class="btn-secondary" onclick="transferBOQToQuote()">
+                                    <i class="fa-solid fa-file-invoice"></i> Submit as Official Quotation Request
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Customer Quotes Tracker Section -->
@@ -354,6 +433,10 @@
                         <button class="staff-nav-item" id="quote-tab-nav" onclick="switchStaffTab('quotes')">
                             <i class="fa-solid fa-file-signature"></i> Quotations
                             <span class="count-badge hidden" id="pending-quotes-badge">0</span>
+                        </button>
+                        <button class="staff-nav-item" id="copilot-tab-nav" onclick="switchStaffTab('copilot')">
+                            <i class="fa-solid fa-robot"></i> AI Staff Co-Pilot
+                            <span class="badge" style="background:var(--accent); font-size:0.65rem; color:#fff; border-radius:4px; padding:2px 5px; margin-left:auto;">AI</span>
                         </button>
                         <button class="staff-nav-item" onclick="switchStaffTab('dashboard')">
                             <i class="fa-solid fa-chart-line"></i> Dashboard & Reports
@@ -659,6 +742,84 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- TAB 6: AI STAFF CO-PILOT -->
+                    <div id="staff-tab-copilot" class="staff-tab-panel hidden">
+                        <div class="section-title-bar">
+                            <div>
+                                <h3><i class="fa-solid fa-robot" style="color:var(--accent);"></i> Simba AI Staff Co-Pilot</h3>
+                                <p style="font-size:0.85rem; color:var(--text-secondary);">Your intelligent store assistant for inventory analysis, quick billing, quote pricing, and daily summaries.</p>
+                            </div>
+                            <button class="btn-secondary" onclick="openAISettingsModal()">
+                                <i class="fa-solid fa-sliders"></i> AI Engine Settings
+                            </button>
+                        </div>
+
+                        <!-- Co-Pilot 4 Action Quick Cards -->
+                        <div class="dashboard-stats-grid copilot-action-grid">
+                            <div class="stat-card copilot-clickable-card" onclick="runCopilotQuickAction('reorder')">
+                                <div class="stat-icon" style="background:var(--amber-bg); color:var(--amber);"><i class="fa-solid fa-boxes-packing"></i></div>
+                                <div>
+                                    <h5>Reorder Advisor</h5>
+                                    <span class="stat-meta">Analyze low stock & calculate replenishment budget</span>
+                                </div>
+                            </div>
+                            <div class="stat-card copilot-clickable-card" onclick="runCopilotQuickAction('fastpos')">
+                                <div class="stat-icon" style="background:var(--accent-glow); color:var(--accent);"><i class="fa-solid fa-bolt"></i></div>
+                                <div>
+                                    <h5>Natural Language POS</h5>
+                                    <span class="stat-meta">Convert typed items directly to active POS bill</span>
+                                </div>
+                            </div>
+                            <div class="stat-card copilot-clickable-card" onclick="runCopilotQuickAction('quotes')">
+                                <div class="stat-icon" style="background:var(--blue-bg); color:var(--primary);"><i class="fa-solid fa-calculator"></i></div>
+                                <div>
+                                    <h5>Quote Pricing Optimizer</h5>
+                                    <span class="stat-meta">Suggest contractor bulk discounts & profit margins</span>
+                                </div>
+                            </div>
+                            <div class="stat-card copilot-clickable-card" onclick="runCopilotQuickAction('briefing')">
+                                <div class="stat-icon" style="background:var(--green-bg); color:var(--green);"><i class="fa-solid fa-chart-pie"></i></div>
+                                <div>
+                                    <h5>Daily Store Briefing</h5>
+                                    <span class="stat-meta">Generate executive summary of sales & inventory</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Staff Console -->
+                        <div class="card-panel copilot-console-panel">
+                            <div class="copilot-console-header">
+                                <div class="copilot-live-status">
+                                    <span class="pulse-indicator"></span>
+                                    <strong>Staff Co-Pilot Terminal</strong>
+                                    <span class="meta-tag">Catalog Synced</span>
+                                </div>
+                                <button class="btn-text-small" onclick="clearCopilotConsole()"><i class="fa-solid fa-eraser"></i> Clear Log</button>
+                            </div>
+
+                            <div class="copilot-chat-feed" id="copilot-chat-feed">
+                                <div class="copilot-msg bot-msg">
+                                    <div class="msg-avatar"><i class="fa-solid fa-helmet-safety"></i></div>
+                                    <div class="msg-body">
+                                        <p><strong>Simba Co-Pilot ready.</strong> You can ask me to analyze inventory, bill items by voice/text, review pending quotations, or generate store reports.</p>
+                                        <div class="copilot-sample-prompts">
+                                            <button type="button" onclick="sendStaffCopilotPrompt('Which products are currently below reorder level?')">⚠️ Check low stock</button>
+                                            <button type="button" onclick="sendStaffCopilotPrompt('Summarize today\'s sales and stock valuation')">📈 Store summary</button>
+                                            <button type="button" onclick="sendStaffCopilotPrompt('Bill 5 bags of Tembo cement and 2 rolls 1.5mm electrical cable')">🛒 Quick POS Bill</button>
+                                            <button type="button" onclick="sendStaffCopilotPrompt('List all pending customer quotations that need pricing')">📝 Review Quotes</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Input Bar -->
+                            <form class="copilot-input-bar" onsubmit="handleStaffCopilotSubmit(event)">
+                                <input type="text" id="copilot-input-text" placeholder="Type a command e.g. 'Show low stock cement' or 'Bill 20 pcs D12 rebar'..." autocomplete="off">
+                                <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Execute</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -668,6 +829,79 @@
     <div class="floating-helpline" onclick="openCallbackModal()">
         <i class="fa-brands fa-whatsapp whatsapp-icon"></i>
         <span>Helpline Chat</span>
+    </div>
+
+    <!-- Floating AI Agent Trigger -->
+    <div class="floating-ai-agent" id="floating-ai-agent-btn" onclick="toggleAIAssistant()">
+        <div class="ai-sparkle-dot"></div>
+        <i class="fa-solid fa-robot"></i>
+        <span>Ask Fundi Simba (AI)</span>
+    </div>
+
+    <!-- Floating AI Assistant Chat Window -->
+    <div class="ai-chat-window hidden" id="ai-chat-window">
+        <div class="ai-chat-header">
+            <div class="ai-header-brand">
+                <div class="ai-avatar-badge"><i class="fa-solid fa-helmet-safety"></i></div>
+                <div>
+                    <h4>Fundi Simba AI</h4>
+                    <span class="ai-sub-status"><i class="fa-solid fa-circle text-green" style="font-size:0.55rem;"></i> Live Store & Material Estimator</span>
+                </div>
+            </div>
+            <div class="ai-header-controls">
+                <button type="button" class="ai-ctrl-btn" title="AI Settings" onclick="openAISettingsModal()"><i class="fa-solid fa-gear"></i></button>
+                <button type="button" class="ai-ctrl-btn" title="Clear Chat" onclick="clearAIChat()"><i class="fa-solid fa-trash-can"></i></button>
+                <button type="button" class="ai-ctrl-btn" title="Close" onclick="toggleAIAssistant()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+
+        <div class="ai-quick-prompts-bar">
+            <button type="button" class="ai-prompt-pill" onclick="sendAIPrompt('How much cement, sand and ballast do I need for a 10m x 2.5m wall?')">🧱 Wall Material Calc</button>
+            <button type="button" class="ai-prompt-pill" onclick="sendAIPrompt('Estimate paint for a 3-bedroom house (approx 180 sqm)')">🎨 Paint Estimator</button>
+            <button type="button" class="ai-prompt-pill" onclick="sendAIPrompt('Which reinforcement steel bars are available?')">🔩 Steel Bar Stock</button>
+            <button type="button" class="ai-prompt-pill" onclick="sendAIPrompt('Recommend electrical cables and plumbing pipes for a house build')">⚡ Wiring & Plumbing</button>
+        </div>
+
+        <div class="ai-chat-body" id="ai-chat-body">
+            <!-- Dynamic message feed -->
+        </div>
+
+        <form class="ai-chat-footer" onsubmit="handleAIChatSubmit(event)">
+            <input type="text" id="ai-chat-input" placeholder="Ask about materials, dimensions, or catalog..." autocomplete="off">
+            <button type="submit" class="ai-send-btn" id="ai-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+    </div>
+
+    <!-- Modal: AI Settings -->
+    <div class="modal-overlay hidden" id="modal-ai-settings">
+        <div class="modal-box modal-small">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-brain" style="color:var(--accent);"></i> AI Engine Settings</h3>
+                <button type="button" class="close-modal-btn" onclick="closeAISettingsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="ai-settings-form" onsubmit="saveAISettings(event)">
+                    <div class="form-group">
+                        <label for="ai-mode-select">AI Reasoning Engine</label>
+                        <select id="ai-mode-select" onchange="toggleApiKeyInput()">
+                            <option value="smart-local">Built-in Simba Domain Engine (Instant, Offline, Zero-Cost)</option>
+                            <option value="gemini-cloud">Google Gemini Flash API (Cloud Enhanced Reasoning)</option>
+                        </select>
+                        <small>The built-in engine specializes in construction calculations, material formulas, and local Kenyan hardware catalog matching.</small>
+                    </div>
+                    <div class="form-group" id="gemini-key-group" style="display:none;">
+                        <label for="gemini-api-key">Gemini API Key</label>
+                        <input type="password" id="gemini-api-key" placeholder="AIzaSy...">
+                        <small>Your key is stored securely in your browser local storage.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="ai-store-context">Hardware Store Context</label>
+                        <input type="text" id="ai-store-context" value="Simba Hardware Hub — Nairobi Industrial Area & Westlands" readonly style="background:var(--border-light);">
+                    </div>
+                    <button type="submit" class="btn-primary block-btn">Save Settings</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- ================= MODALS & POPUPS ================= -->

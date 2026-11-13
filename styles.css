@@ -1576,5 +1576,693 @@ input:focus, select:focus, textarea:focus {
         padding: 12px;
         border-radius: 50%;
     }
+    .floating-ai-agent span {
+        display: none;
+    }
+    .floating-ai-agent {
+        padding: 12px;
+        border-radius: 50%;
+        bottom: 76px;
+        right: 24px;
+    }
+}
+
+/* ==========================================================================
+   AI SUITE: FUNDI SIMBA CHAT, BOQ SCANNER & STAFF CO-PILOT
+   ========================================================================== */
+
+/* 1. Floating AI Agent Trigger Button */
+.floating-ai-agent {
+    position: fixed;
+    bottom: 24px;
+    right: 175px;
+    background: linear-gradient(135deg, var(--primary) 0%, #1A4B75 100%);
+    color: #FFFFFF;
+    border: 2px solid var(--accent);
+    padding: 10px 18px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 18px rgba(15, 45, 74, 0.35);
+    cursor: pointer;
+    z-index: 101;
+    transition: var(--transition);
+}
+
+.floating-ai-agent:hover {
+    background: linear-gradient(135deg, #1A4B75 0%, var(--primary) 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 22px rgba(242, 140, 40, 0.4);
+}
+
+.ai-sparkle-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+    animation: pulseOrange 1.6s infinite ease-in-out;
+}
+
+@keyframes pulseOrange {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+@keyframes pulseGreen {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+@media (max-width: 768px) {
+    .floating-ai-agent {
+        right: 24px;
+        bottom: 80px;
+    }
+}
+
+/* 2. Floating AI Assistant Chat Window */
+.ai-chat-window {
+    position: fixed;
+    bottom: 84px;
+    right: 24px;
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    height: 580px;
+    max-height: calc(100vh - 110px);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 45px rgba(15, 45, 74, 0.22);
+    display: flex;
+    flex-direction: column;
+    z-index: 102;
+    overflow: hidden;
+    animation: slideUpAi 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpAi {
+    from { opacity: 0; transform: translateY(20px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ai-chat-header {
+    background-color: var(--primary);
+    color: #FFFFFF;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--accent);
+}
+
+.ai-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ai-avatar-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.ai-header-brand h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.ai-sub-status {
+    font-size: 0.72rem;
+    color: #CBD5E1;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.ai-header-controls {
+    display: flex;
+    gap: 6px;
+}
+
+.ai-ctrl-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #CBD5E1;
+    background: rgba(255, 255, 255, 0.1);
+    transition: var(--transition);
+}
+
+.ai-ctrl-btn:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* AI Quick Prompts Carousel */
+.ai-quick-prompts-bar {
+    padding: 8px 12px;
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.ai-quick-prompts-bar::-webkit-scrollbar {
+    height: 4px;
+}
+
+.ai-prompt-pill {
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 0.72rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.ai-prompt-pill:hover {
+    background-color: var(--accent-glow);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* AI Chat Body */
+.ai-chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: var(--bg-primary);
+}
+
+.ai-msg {
+    display: flex;
+    gap: 8px;
+    max-width: 90%;
+}
+
+.ai-msg.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.ai-msg.assistant {
+    align-self: flex-start;
+}
+
+.ai-msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.ai-msg.assistant .ai-msg-avatar {
+    background-color: var(--primary);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+}
+
+.ai-msg.user .ai-msg-avatar {
+    background-color: var(--accent);
+    color: #FFFFFF;
+}
+
+.ai-msg-bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.ai-msg.user .ai-msg-bubble {
+    background-color: var(--primary);
+    color: #FFFFFF;
+    border-bottom-right-radius: 2px;
+}
+
+.ai-msg.assistant .ai-msg-bubble {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-bottom-left-radius: 2px;
+    box-shadow: var(--shadow-sm);
+}
+
+.ai-msg-bubble p {
+    margin-bottom: 6px;
+}
+.ai-msg-bubble p:last-child {
+    margin-bottom: 0;
+}
+
+.ai-calc-box {
+    background-color: var(--bg-primary);
+    border-left: 3px solid var(--accent);
+    padding: 8px 10px;
+    margin: 8px 0;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.ai-item-recommendations {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ai-rec-card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.ai-rec-info h6 {
+    font-size: 0.82rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.ai-rec-sku {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.ai-rec-price {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--accent);
+}
+
+.ai-rec-btn {
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    border-radius: 4px;
+    background-color: var(--accent);
+    color: #FFFFFF;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.ai-rec-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.ai-bulk-add-bar {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border-color);
+    display: flex;
+    gap: 6px;
+}
+
+.ai-bulk-add-btn {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    background-color: var(--primary);
+    color: #FFFFFF;
+    border: 1px solid var(--accent);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: var(--transition);
+}
+
+.ai-bulk-add-btn:hover {
+    background-color: var(--accent);
+}
+
+/* AI Chat Footer */
+.ai-chat-footer {
+    padding: 10px 12px;
+    background-color: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 8px;
+}
+
+.ai-chat-footer input {
+    flex: 1;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.ai-chat-footer input:focus {
+    border-color: var(--accent);
+}
+
+.ai-send-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    color: #FFFFFF;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.ai-send-btn:hover {
+    background-color: var(--accent-hover);
+    transform: scale(1.05);
+}
+
+/* 3. Contractor BOQ Scanner Section Styles */
+.ai-panel {
+    border-top: 3px solid var(--accent);
+    position: relative;
+}
+
+.ai-glow-icon {
+    background: var(--accent-glow) !important;
+    color: var(--accent) !important;
+}
+
+.badge-ai-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background-color: var(--accent-glow);
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+}
+
+.boq-sample-pills {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+}
+
+.sample-label {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.sample-pill-btn {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.sample-pill-btn:hover {
+    border-color: var(--accent);
+    background-color: var(--accent-glow);
+    color: var(--accent);
+}
+
+.boq-actions-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.boq-results-box {
+    margin-top: 20px;
+    padding: 16px;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    animation: fadeIn 0.3s ease;
+}
+
+.boq-summary-header {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.boq-stat {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 10px 16px;
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+}
+
+.boq-stat .stat-num {
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+}
+
+.boq-stat.total-stat {
+    margin-left: auto;
+    border-color: var(--green);
+}
+
+.boq-stat .stat-lbl {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.boq-table th {
+    background-color: var(--bg-card);
+}
+
+.boq-action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+/* 4. Staff AI Co-Pilot Tab Styles */
+.copilot-action-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.copilot-clickable-card {
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid var(--border-color);
+}
+
+.copilot-clickable-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-md);
+}
+
+.copilot-console-panel {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 18px;
+}
+
+.copilot-console-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.copilot-live-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.pulse-indicator {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: var(--green);
+    animation: pulseGreen 1.5s infinite;
+}
+
+.meta-tag {
+    font-size: 0.7rem;
+    background-color: var(--green-bg);
+    color: var(--green);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.btn-text-small {
+    background: none;
+    border: none;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-text-small:hover {
+    color: var(--red);
+}
+
+.copilot-chat-feed {
+    max-height: 420px;
+    min-height: 220px;
+    overflow-y: auto;
+    padding: 12px;
+    background-color: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.copilot-msg {
+    display: flex;
+    gap: 10px;
+}
+
+.copilot-msg.user-msg {
+    flex-direction: row-reverse;
+}
+
+.copilot-msg .msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.copilot-msg.user-msg .msg-avatar {
+    background-color: var(--accent);
+    color: #FFFFFF;
+}
+
+.copilot-msg .msg-body {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    max-width: 85%;
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.copilot-msg.user-msg .msg-body {
+    background-color: var(--primary);
+    color: #FFFFFF;
+    border-color: var(--primary);
+}
+
+.copilot-sample-prompts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.copilot-sample-prompts button {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.copilot-sample-prompts button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.copilot-input-bar {
+    display: flex;
+    gap: 8px;
+}
+
+.copilot-input-bar input {
+    flex: 1;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.copilot-input-bar input:focus {
+    border-color: var(--accent);
 }
 

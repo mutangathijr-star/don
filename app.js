@@ -185,9 +185,14 @@ function switchStaffTab(tabName) {
         renderStaffDispatchTable();
     } else if (tabName === "quotes") {
         renderQuotesInbox();
+    } else if (tabName === "copilot") {
+        renderStaffCopilot();
     } else if (tabName === "dashboard") {
         renderDashboard();
     }
+
+    const navBtn = document.querySelector(`.staff-nav-item[onclick*="'${tabName}'"]`);
+    if (navBtn) navBtn.classList.add("active");
 }
 
 // Dark/Light Theme Switcher
@@ -1310,10 +1315,890 @@ function resolveCallback(cbId) {
     renderCallbackRequestsLog();
 }
 
-// 13. INITIALIZATION ON PAGE LOAD
+// ==========================================================================
+// 13. FUNDI SIMBA AI CHAT ASSISTANT (CUSTOMER STOREFRONT)
+// ==========================================================================
+
+let aiSettings = loadState('simba_ai_settings', {
+    mode: 'smart-local',
+    apiKey: ''
+});
+
+const DEFAULT_AI_MESSAGES = [
+    {
+        sender: 'assistant',
+        text: `Habari! I am <strong>Fundi Simba</strong>, your AI Hardware & Construction Assistant. 🔨<br><br>
+I can calculate construction materials for walls, concrete slabs, roofing, or paint coverage, search our live inventory, and add items directly to your shopping cart or quotation!`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+];
+
+let aiChatMessages = loadState('simba_ai_chat', DEFAULT_AI_MESSAGES);
+let isAiWindowOpen = false;
+
+function initAI() {
+    renderAIChat();
+    // Check if API key exists in settings
+    const keyInput = document.getElementById("gemini-api-key");
+    const modeSelect = document.getElementById("ai-mode-select");
+    if (keyInput && aiSettings.apiKey) keyInput.value = aiSettings.apiKey;
+    if (modeSelect && aiSettings.mode) modeSelect.value = aiSettings.mode;
+    toggleApiKeyInput();
+}
+
+function toggleAIAssistant() {
+    const win = document.getElementById("ai-chat-window");
+    if (!win) return;
+    isAiWindowOpen = !isAiWindowOpen;
+    if (isAiWindowOpen) {
+        win.classList.remove("hidden");
+        renderAIChat();
+        setTimeout(() => {
+            const input = document.getElementById("ai-chat-input");
+            if (input) input.focus();
+        }, 150);
+    } else {
+        win.classList.add("hidden");
+    }
+}
+
+function openAISettingsModal() {
+    const modal = document.getElementById("modal-ai-settings");
+    if (modal) modal.classList.remove("hidden");
+}
+
+function closeAISettingsModal() {
+    const modal = document.getElementById("modal-ai-settings");
+    if (modal) modal.classList.add("hidden");
+}
+
+function toggleApiKeyInput() {
+    const mode = document.getElementById("ai-mode-select")?.value;
+    const group = document.getElementById("gemini-key-group");
+    if (group) {
+        group.style.display = (mode === "gemini-cloud") ? "block" : "none";
+    }
+}
+
+function saveAISettings(e) {
+    e.preventDefault();
+    const mode = document.getElementById("ai-mode-select").value;
+    const key = document.getElementById("gemini-api-key").value.trim();
+    aiSettings = { mode, apiKey: key };
+    saveState('simba_ai_settings', aiSettings);
+    closeAISettingsModal();
+    alert("AI settings saved successfully!");
+}
+
+function clearAIChat() {
+    if (!confirm("Clear your chat history with Fundi Simba?")) return;
+    aiChatMessages = [...DEFAULT_AI_MESSAGES];
+    saveState('simba_ai_chat', aiChatMessages);
+    renderAIChat();
+}
+
+function renderAIChat() {
+    const body = document.getElementById("ai-chat-body");
+    if (!body) return;
+
+    body.innerHTML = aiChatMessages.map(msg => {
+        const isUser = msg.sender === 'user';
+        return `
+            <div class="ai-msg ${isUser ? 'user' : 'assistant'}">
+                <div class="ai-msg-avatar">
+                    <i class="fa-solid ${isUser ? 'fa-user' : 'fa-helmet-safety'}"></i>
+                </div>
+                <div class="ai-msg-bubble">
+                    ${msg.text}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    body.scrollTop = body.scrollHeight;
+}
+
+function sendAIPrompt(text) {
+    if (!isAiWindowOpen) toggleAIAssistant();
+    const input = document.getElementById("ai-chat-input");
+    if (input) {
+        input.value = text;
+        handleAIChatSubmit(new Event('submit'));
+    }
+}
+
+async function handleAIChatSubmit(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    const input = document.getElementById("ai-chat-input");
+    const userText = input ? input.value.trim() : "";
+    if (!userText) return;
+
+    // Add user message
+    aiChatMessages.push({
+        sender: 'user',
+        text: userText,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+    input.value = "";
+    saveState('simba_ai_chat', aiChatMessages);
+    renderAIChat();
+
+    // Show temporary typing indicator
+    const body = document.getElementById("ai-chat-body");
+    const typingIndicator = document.createElement("div");
+    typingIndicator.className = "ai-msg assistant typing-msg";
+    typingIndicator.innerHTML = `
+        <div class="ai-msg-avatar"><i class="fa-solid fa-helmet-safety"></i></div>
+        <div class="ai-msg-bubble"><i class="fa-solid fa-circle-notch fa-spin"></i> Calculating materials & checking stock...</div>
+    `;
+    body.appendChild(typingIndicator);
+    body.scrollTop = body.scrollHeight;
+
+    // Process with Domain AI Engine or Gemini
+    try {
+        const aiResponse = await generateAIResponse(userText);
+        typingIndicator.remove();
+        aiChatMessages.push({
+            sender: 'assistant',
+            text: aiResponse,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        saveState('simba_ai_chat', aiChatMessages);
+        renderAIChat();
+    } catch (err) {
+        typingIndicator.remove();
+        const fallback = generateLocalDomainResponse(userText);
+        aiChatMessages.push({
+            sender: 'assistant',
+            text: fallback,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        saveState('simba_ai_chat', aiChatMessages);
+        renderAIChat();
+    }
+}
+
+async function generateAIResponse(prompt) {
+    if (aiSettings.mode === "gemini-cloud" && aiSettings.apiKey) {
+        try {
+            const contextCatalog = products.map(p => `${p.name} (SKU: ${p.sku}) - KES ${p.salePrice} per ${p.unit}, In Stock: ${p.stockQty}`).join("\n");
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(aiSettings.apiKey)}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            role: "user",
+                            parts: [
+                                {
+                                    text: `You are 'Fundi Simba', a friendly and expert construction hardware assistant for Simba Hardware in Kenya.
+Our live products catalog:
+${contextCatalog}
+
+When the user asks for construction calculations (e.g. wall, concrete, paint, electrical, pipes), estimate exact quantities using standard Kenyan construction practices.
+Recommend matching SKUs from our catalog. Mention accurate KES prices.
+Provide concise HTML formatted text without markdown backticks.`
+                                },
+                                { text: prompt }
+                            ]
+                        }
+                    ]
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (reply) return reply;
+            }
+        } catch (e) {
+            console.warn("Gemini API call failed, falling back to local engine:", e);
+        }
+    }
+
+    return generateLocalDomainResponse(prompt);
+}
+
+// Built-in Smart Domain Engine for Hardware Calculations & Catalog Matching
+function generateLocalDomainResponse(prompt) {
+    const lower = prompt.toLowerCase();
+    let reply = "";
+    let recItems = [];
+
+    // 1. WALL & MASONRY ESTIMATION
+    if (lower.includes("wall") || lower.includes("brick") || lower.includes("block") || lower.includes("masonry") || lower.includes("cement") && lower.includes("sand")) {
+        // Look for dimensions e.g. "10m x 2.5m" or numbers
+        const numMatches = prompt.match(/\d+(\.\d+)?/g);
+        let length = 10;
+        let height = 2.5;
+
+        if (numMatches && numMatches.length >= 2) {
+            length = parseFloat(numMatches[0]);
+            height = parseFloat(numMatches[1]);
+        } else if (numMatches && numMatches.length === 1) {
+            length = parseFloat(numMatches[0]);
+        }
+
+        const area = (length * height).toFixed(1);
+        // Approx 12.5 blocks/m² for 9" or 6" blocks, or ~50 bricks
+        const blocksNeeded = Math.round(area * 12.5);
+        // Approx 1 bag 32.5N cement per 35 blocks for 1:4 mortar
+        const cementBags = Math.max(2, Math.round(blocksNeeded / 35));
+        // Approx 1 ton of river sand per 10 bags cement
+        const sandTons = (cementBags * 0.1).toFixed(1);
+
+        const cementProd = getProductBySku("CEM-001") || products.find(p => p.category === "Cement");
+        const hammerProd = getProductBySku("TOL-001");
+
+        reply = `
+            <p><strong>🧱 Wall Construction Estimate (${length}m × ${height}m = ${area} m²):</strong></p>
+            <div class="ai-calc-box">
+                • <strong>Estimated Blocks / Stones:</strong> ~${blocksNeeded} pieces (Standard 9" stone blocks)<br>
+                • <strong>Mortar Cement (32.5N):</strong> ~<strong>${cementBags} bags</strong> (1:4 standard mix)<br>
+                • <strong>Clean River Sand:</strong> ~${sandTons} Tons<br>
+                • <strong>DPC (Damp Proof Course):</strong> 1 roll recommended for base damp proofing.
+            </div>
+            <p>Here are the recommended items from our live inventory:</p>
+        `;
+
+        if (cementProd) recItems.push({ sku: cementProd.sku, qty: cementBags });
+        if (hammerProd) recItems.push({ sku: hammerProd.sku, qty: 1 });
+
+    // 2. PAINT ESTIMATOR
+    } else if (lower.includes("paint") || lower.includes("primer") || lower.includes("sqm") || lower.includes("square meter") || lower.includes("room") || lower.includes("house")) {
+        const numMatches = prompt.match(/\d+(\.\d+)?/g);
+        let area = 150;
+        if (numMatches && numMatches.length >= 1) {
+            area = parseFloat(numMatches[0]);
+        }
+
+        // 20L tin covers approx 70-80 sqm (2 coats)
+        const tinsNeeded = Math.max(1, Math.ceil(area / 75));
+        const paintProd = getProductBySku("PNT-001") || products.find(p => p.category === "Paint");
+
+        reply = `
+            <p><strong>🎨 Paint Coverage Estimate for ~${area} m²:</strong></p>
+            <div class="ai-calc-box">
+                • <strong>Surface Area:</strong> ~${area} m² (2 coats coverage)<br>
+                • <strong>Required Volume:</strong> ~${tinsNeeded * 20} Litres<br>
+                • <strong>20L Tins Needed:</strong> <strong>${tinsNeeded} tin${tinsNeeded > 1 ? 's' : ''}</strong> (Vinyl Matt White / Emulsion)
+            </div>
+            <p>Stock available in store:</p>
+        `;
+
+        if (paintProd) recItems.push({ sku: paintProd.sku, qty: tinsNeeded });
+
+    // 3. STEEL & REBAR
+    } else if (lower.includes("steel") || lower.includes("rebar") || lower.includes("d12") || lower.includes("d10") || lower.includes("iron bar")) {
+        const steelD12 = getProductBySku("STL-001");
+        const steelD10 = getProductBySku("STL-002");
+
+        reply = `
+            <p><strong>🔩 Reinforcement Steel Bars (High Tensile Grade):</strong></p>
+            <div class="ai-calc-box">
+                • <strong>D12 (12mm):</strong> Ideal for structural columns, main foundation beams, and lintels.<br>
+                • <strong>D10 (10mm):</strong> Used for slab mesh, stirrups/rings, and secondary reinforcement.
+            </div>
+            <p>Current in-stock rebar products:</p>
+        `;
+
+        if (steelD12) recItems.push({ sku: steelD12.sku, qty: 10 });
+        if (steelD10) recItems.push({ sku: steelD10.sku, qty: 10 });
+
+    // 4. ELECTRICAL & PLUMBING
+    } else if (lower.includes("electrical") || lower.includes("wire") || lower.includes("cable") || lower.includes("plumb") || lower.includes("pipe") || lower.includes("ppr")) {
+        const cableProd = getProductBySku("ELC-001");
+        const pprProd = getProductBySku("PLM-001");
+
+        reply = `
+            <p><strong>⚡ Piping & Wiring Specifications:</strong></p>
+            <div class="ai-calc-box">
+                • <strong>Lighting & Sockets:</strong> 1.5mm Single Core copper cables for lighting circuits; 2.5mm for standard 13A socket rings.<br>
+                • <strong>Water Supply:</strong> PPR PN20 (20mm or 25mm) high-pressure hot/cold potable water pipes.
+            </div>
+            <p>Verified store products ready for dispatch:</p>
+        `;
+
+        if (cableProd) recItems.push({ sku: cableProd.sku, qty: 2 });
+        if (pprProd) recItems.push({ sku: pprProd.sku, qty: 5 });
+
+    // 5. DIRECT PRODUCT SEARCH & GENERAL QUERY
+    } else {
+        // Search through catalog
+        const matchingProds = products.filter(p => {
+            const words = lower.split(/\s+/);
+            return words.some(w => w.length > 2 && (p.name.toLowerCase().includes(w) || p.category.toLowerCase().includes(w)));
+        });
+
+        if (matchingProds.length > 0) {
+            reply = `<p>Found <strong>${matchingProds.length}</strong> matching item(s) in our live inventory:</p>`;
+            matchingProds.slice(0, 3).forEach(p => {
+                recItems.push({ sku: p.sku, qty: 1 });
+            });
+        } else {
+            reply = `
+                <p>I understand! We carry a full range of <strong>Cement, Steel, Paint, Tools, Electricals, Plumbing</strong>, and general <strong>Building Materials</strong>.</p>
+                <p>Try asking me to:</p>
+                <div class="ai-calc-box">
+                    • <em>"Calculate cement & sand for a 15m perimeter wall"</em><br>
+                    • <em>"How many tins of paint for 200 sqm?"</em><br>
+                    • <em>"What is the price of D12 steel bar?"</em>
+                </div>
+            `;
+            const sampleProd = products[0];
+            if (sampleProd) recItems.push({ sku: sampleProd.sku, qty: 1 });
+        }
+    }
+
+    // Build Recommendation Cards HTML
+    if (recItems.length > 0) {
+        let cardsHtml = `<div class="ai-item-recommendations">`;
+        recItems.forEach(item => {
+            const p = getProductBySku(item.sku);
+            if (!p) return;
+            const inStock = p.stockQty > 0;
+            cardsHtml += `
+                <div class="ai-rec-card">
+                    <div class="ai-rec-info">
+                        <h6>${p.name}</h6>
+                        <span class="ai-rec-sku">${p.sku} • In stock: ${p.stockQty} ${p.unit}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="ai-rec-price">${formatKES(p.salePrice)}</div>
+                        ${inStock ? `<button type="button" class="ai-rec-btn" onclick="aiAddToCart('${p.sku}', ${item.qty})"><i class="fa-solid fa-cart-plus"></i> Add ${item.qty}</button>` : `<span class="badge" style="background:var(--red-bg); color:var(--red); font-size:0.7rem;">Out of stock</span>`}
+                    </div>
+                </div>
+            `;
+        });
+        cardsHtml += `</div>`;
+
+        // Bulk action bar
+        const itemsPayload = encodeURIComponent(JSON.stringify(recItems));
+        cardsHtml += `
+            <div class="ai-bulk-add-bar">
+                <button type="button" class="ai-bulk-add-btn" onclick="aiAddAllToCart('${itemsPayload}')">
+                    <i class="fa-solid fa-cart-shopping"></i> Add All to Cart
+                </button>
+                <button type="button" class="ai-bulk-add-btn" style="background:transparent; color:var(--text-primary); border-color:var(--border-color);" onclick="aiAddToQuote('${itemsPayload}')">
+                    <i class="fa-solid fa-file-invoice"></i> Request Quote
+                </button>
+            </div>
+        `;
+
+        reply += cardsHtml;
+    }
+
+    return reply;
+}
+
+function aiAddToCart(sku, qty = 1) {
+    const prod = getProductBySku(sku);
+    if (!prod) return;
+    if (prod.stockQty <= 0) {
+        alert("Sorry, this item is currently out of stock.");
+        return;
+    }
+
+    const existing = customerCart.find(item => item.sku === sku);
+    if (existing) {
+        const newQty = existing.qty + qty;
+        existing.qty = Math.min(newQty, prod.stockQty);
+    } else {
+        customerCart.push({ sku, qty: Math.min(qty, prod.stockQty) });
+    }
+
+    updateCartBadge();
+    renderCustomerCart();
+    
+    // Open cart drawer to confirm
+    const drawer = document.getElementById("cart-drawer-panel");
+    if (drawer && !drawer.classList.contains("open")) {
+        drawer.classList.add("open");
+    }
+}
+
+function aiAddAllToCart(encodedJson) {
+    try {
+        const items = JSON.parse(decodeURIComponent(encodedJson));
+        let addedCount = 0;
+        items.forEach(it => {
+            const prod = getProductBySku(it.sku);
+            if (prod && prod.stockQty > 0) {
+                const existing = customerCart.find(c => c.sku === it.sku);
+                const addQty = Math.min(it.qty, prod.stockQty);
+                if (existing) {
+                    existing.qty = Math.min(existing.qty + addQty, prod.stockQty);
+                } else {
+                    customerCart.push({ sku: it.sku, qty: addQty });
+                }
+                addedCount++;
+            }
+        });
+
+        updateCartBadge();
+        renderCustomerCart();
+
+        const drawer = document.getElementById("cart-drawer-panel");
+        if (drawer) drawer.classList.add("open");
+
+        alert(`Added ${addedCount} recommended product(s) to your Cart!`);
+    } catch (e) {
+        console.error("Failed to add all items to cart:", e);
+    }
+}
+
+function aiAddToQuote(encodedJson) {
+    try {
+        const items = JSON.parse(decodeURIComponent(encodedJson));
+        items.forEach(it => {
+            const prod = getProductBySku(it.sku);
+            if (prod) {
+                const existing = customerQuoteItems.find(q => q.sku === it.sku);
+                if (existing) {
+                    existing.qty += it.qty;
+                } else {
+                    customerQuoteItems.push({
+                        sku: it.sku,
+                        name: prod.name,
+                        qty: it.qty
+                    });
+                }
+            }
+        });
+
+        renderQuoteBuilderList();
+        const quoteSection = document.getElementById("quotation-section");
+        if (quoteSection) {
+            quoteSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        alert("Items added to your Quotation Request form!");
+    } catch (e) {
+        console.error("Failed to add items to quotation:", e);
+    }
+}
+
+
+// ==========================================================================
+// 14. CONTRACTOR BOQ & MATERIAL LIST SCANNER
+// ==========================================================================
+
+let parsedBOQItems = [];
+
+const BOQ_SAMPLES = {
+    masonry: `50 bags Bamburi Tembo Cement (32.5N)
+25 pieces Reinforcement Steel Bar D12 (12mm)
+15 pieces Reinforcement Steel Bar D10 (10mm)
+2 pieces Stanley Claw Hammer 16oz`,
+    electrical: `3 rolls East African Cables Single Core 1.5mm
+50 pieces PVC Conduits 20mm
+1 piece 6-way Consumer Unit distribution board`,
+    plumbing: `15 pieces PPR Pipe PN20 (20mm x 4M)
+10 pieces PPR Equal Elbow 20mm
+2 pieces PPR Gate Valve 20mm
+1 tin Crown Paints Vinyl Matt White (20L)`
+};
+
+function loadBOQSample(type) {
+    const input = document.getElementById("boq-raw-input");
+    if (input && BOQ_SAMPLES[type]) {
+        input.value = BOQ_SAMPLES[type];
+        processBOQScan();
+    }
+}
+
+function clearBOQScanner() {
+    const input = document.getElementById("boq-raw-input");
+    if (input) input.value = "";
+    parsedBOQItems = [];
+    const container = document.getElementById("boq-results-container");
+    if (container) container.classList.add("hidden");
+}
+
+function processBOQScan() {
+    const input = document.getElementById("boq-raw-input");
+    const rawText = input ? input.value.trim() : "";
+    if (!rawText) {
+        alert("Please paste or type a material list into the text box.");
+        return;
+    }
+
+    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    parsedBOQItems = [];
+    let grandTotal = 0;
+    let matchedCount = 0;
+
+    lines.forEach(line => {
+        // Extract quantity from start or middle of line
+        const qtyMatch = line.match(/^\d+/) || line.match(/(\d+)\s*(bags?|pcs?|pieces?|rolls?|tins?|meters?|m|kgs?)/i) || line.match(/\d+/);
+        let qty = qtyMatch ? parseInt(qtyMatch[0], 10) : 1;
+        if (isNaN(qty) || qty <= 0) qty = 1;
+
+        // Clean query text
+        const queryText = line.replace(/^\d+[\s\.\-\)]*/, '').trim().toLowerCase();
+
+        // Match against live products catalog
+        let bestMatch = null;
+        let highestScore = 0;
+
+        products.forEach(prod => {
+            const nameLower = prod.name.toLowerCase();
+            const skuLower = prod.sku.toLowerCase();
+            const catLower = prod.category.toLowerCase();
+            let score = 0;
+
+            // Direct SKU match
+            if (line.toUpperCase().includes(prod.sku)) score += 100;
+            // Name keyword matching
+            const queryWords = queryText.split(/[\s,]+/);
+            queryWords.forEach(w => {
+                if (w.length > 2) {
+                    if (nameLower.includes(w)) score += 10;
+                    if (skuLower.includes(w)) score += 15;
+                    if (catLower.includes(w)) score += 5;
+                }
+            });
+
+            if (score > highestScore) {
+                highestScore = score;
+                bestMatch = prod;
+            }
+        });
+
+        const isMatched = bestMatch && highestScore >= 10;
+        if (isMatched) matchedCount++;
+
+        const unitPrice = isMatched ? bestMatch.salePrice : 0;
+        const lineTotal = unitPrice * qty;
+        grandTotal += lineTotal;
+
+        parsedBOQItems.push({
+            originalLine: line,
+            qty,
+            matchedProduct: isMatched ? bestMatch : null,
+            unitPrice,
+            lineTotal
+        });
+    });
+
+    // Render results
+    const container = document.getElementById("boq-results-container");
+    const tbody = document.getElementById("boq-results-tbody");
+    document.getElementById("boq-matched-count").textContent = `${matchedCount} / ${lines.length}`;
+    document.getElementById("boq-items-detected").textContent = lines.length;
+    document.getElementById("boq-total-estimate").textContent = formatKES(grandTotal);
+
+    tbody.innerHTML = parsedBOQItems.map(item => {
+        const prod = item.matchedProduct;
+        if (prod) {
+            const inStock = prod.stockQty >= item.qty;
+            const stockClass = inStock ? 'text-green' : (prod.stockQty > 0 ? 'text-amber' : 'text-red');
+            const stockLabel = inStock ? `In Stock (${prod.stockQty} ${prod.unit})` : (prod.stockQty > 0 ? `Partial (${prod.stockQty} left)` : `Out of Stock`);
+
+            return `
+                <tr>
+                    <td style="font-size:0.8rem; font-weight:500;">${item.originalLine}</td>
+                    <td>
+                        <strong style="font-size:0.85rem;">${prod.name}</strong><br>
+                        <span style="font-size:0.7rem; color:var(--text-muted);">${prod.sku} • ${prod.category}</span>
+                    </td>
+                    <td><strong>${item.qty}</strong> ${prod.unit}</td>
+                    <td>${formatKES(prod.salePrice)}</td>
+                    <td style="font-weight:700; color:var(--text-primary);">${formatKES(item.lineTotal)}</td>
+                    <td><span class="${stockClass}" style="font-weight:600; font-size:0.8rem;">${stockLabel}</span></td>
+                </tr>
+            `;
+        } else {
+            return `
+                <tr style="opacity:0.75; background:var(--bg-primary);">
+                    <td style="font-size:0.8rem;">${item.originalLine}</td>
+                    <td>
+                        <em style="color:var(--text-muted);">Specialized / Custom Item</em><br>
+                        <small style="color:var(--amber);">Will be reviewed manually by procurement</small>
+                    </td>
+                    <td><strong>${item.qty}</strong> units</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td><span class="badge" style="background:var(--amber-bg); color:var(--amber); font-size:0.7rem;">Custom Quote</span></td>
+                </tr>
+            `;
+        }
+    }).join('');
+
+    container.classList.remove("hidden");
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function transferBOQToCart() {
+    let addedCount = 0;
+    parsedBOQItems.forEach(item => {
+        if (item.matchedProduct && item.matchedProduct.stockQty > 0) {
+            const sku = item.matchedProduct.sku;
+            const existing = customerCart.find(c => c.sku === sku);
+            const addQty = Math.min(item.qty, item.matchedProduct.stockQty);
+            if (existing) {
+                existing.qty = Math.min(existing.qty + addQty, item.matchedProduct.stockQty);
+            } else {
+                customerCart.push({ sku, qty: addQty });
+            }
+            addedCount++;
+        }
+    });
+
+    if (addedCount > 0) {
+        updateCartBadge();
+        renderCustomerCart();
+        const drawer = document.getElementById("cart-drawer-panel");
+        if (drawer) drawer.classList.add("open");
+        alert(`Successfully transferred ${addedCount} matched product(s) into your cart!`);
+    } else {
+        alert("No in-stock matched products found to add.");
+    }
+}
+
+function transferBOQToQuote() {
+    let count = 0;
+    parsedBOQItems.forEach(item => {
+        if (item.matchedProduct) {
+            const existing = customerQuoteItems.find(q => q.sku === item.matchedProduct.sku);
+            if (existing) {
+                existing.qty += item.qty;
+            } else {
+                customerQuoteItems.push({
+                    sku: item.matchedProduct.sku,
+                    name: item.matchedProduct.name,
+                    qty: item.qty
+                });
+            }
+            count++;
+        }
+    });
+
+    // Also populate description with any unmatched lines
+    const unmatched = parsedBOQItems.filter(i => !i.matchedProduct).map(i => i.originalLine).join(", ");
+    if (unmatched) {
+        const descField = document.getElementById("quote-description");
+        if (descField) {
+            descField.value = (descField.value ? descField.value + "\n" : "") + "Additional custom materials: " + unmatched;
+        }
+    }
+
+    renderQuoteBuilderList();
+    const section = document.getElementById("quotation-section");
+    if (section) section.scrollIntoView({ behavior: 'smooth' });
+    alert(`Added ${count} items to your Quotation Request form!`);
+}
+
+
+// ==========================================================================
+// 15. STAFF TERMINAL AI CO-PILOT
+// ==========================================================================
+
+let copilotFeed = [];
+
+function renderStaffCopilot() {
+    const feed = document.getElementById("copilot-chat-feed");
+    if (!feed) return;
+    if (copilotFeed.length === 0) {
+        copilotFeed.push({
+            sender: 'bot',
+            html: `
+                <p><strong>Simba Co-Pilot ready.</strong> You can ask me to analyze inventory, bill items by voice/text, review pending quotations, or generate store reports.</p>
+                <div class="copilot-sample-prompts">
+                    <button type="button" onclick="sendStaffCopilotPrompt('Which products are currently below reorder level?')">⚠️ Check low stock</button>
+                    <button type="button" onclick="sendStaffCopilotPrompt('Summarize today\\'s sales and stock valuation')">📈 Store summary</button>
+                    <button type="button" onclick="sendStaffCopilotPrompt('Bill 5 bags of Tembo cement and 2 rolls 1.5mm electrical cable')">🛒 Quick POS Bill</button>
+                    <button type="button" onclick="sendStaffCopilotPrompt('List all pending customer quotations that need pricing')">📝 Review Quotes</button>
+                </div>
+            `
+        });
+    }
+
+    feed.innerHTML = copilotFeed.map(msg => `
+        <div class="copilot-msg ${msg.sender === 'user' ? 'user-msg' : 'bot-msg'}">
+            <div class="msg-avatar"><i class="fa-solid ${msg.sender === 'user' ? 'fa-user' : 'fa-helmet-safety'}"></i></div>
+            <div class="msg-body">${msg.html}</div>
+        </div>
+    `).join('');
+
+    feed.scrollTop = feed.scrollHeight;
+}
+
+function clearCopilotConsole() {
+    copilotFeed = [];
+    renderStaffCopilot();
+}
+
+function runCopilotQuickAction(action) {
+    if (action === 'reorder') {
+        const lowStock = products.filter(p => p.stockQty <= p.reorderLevel);
+        let totalCost = 0;
+        let rowsHtml = lowStock.map(p => {
+            const reorderQty = Math.max(10, (p.reorderLevel * 2) - p.stockQty);
+            const estCost = reorderQty * p.costPrice;
+            totalCost += estCost;
+            return `<tr>
+                <td><strong>${p.name}</strong> (${p.sku})</td>
+                <td style="color:var(--red); font-weight:700;">${p.stockQty} ${p.unit}</td>
+                <td>${p.reorderLevel} ${p.unit}</td>
+                <td><strong>+${reorderQty} ${p.unit}</strong></td>
+                <td>${formatKES(estCost)}</td>
+            </tr>`;
+        }).join('');
+
+        const html = `
+            <h6>📦 Reorder Intelligence Analysis</h6>
+            <p>Found <strong>${lowStock.length}</strong> product(s) needing replenishment:</p>
+            <div class="table-responsive" style="margin:8px 0;">
+                <table class="data-table" style="font-size:0.75rem;">
+                    <thead>
+                        <tr><th>Product</th><th>Current Stock</th><th>Reorder Level</th><th>Suggested Order</th><th>Est. Cost</th></tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>
+            <p style="font-weight:700;">Total Estimated Procurement Budget: <span class="text-green">${formatKES(totalCost)}</span></p>
+        `;
+        pushCopilotMessage('bot', html);
+
+    } else if (action === 'fastpos') {
+        const prompt = "Bill 5 bags of Tembo cement and 2 reinforcement steel bars D12";
+        sendStaffCopilotPrompt(prompt);
+
+    } else if (action === 'quotes') {
+        const pending = quotations.filter(q => q.status === 'pending');
+        let html = `<h6>📝 Quotation Margin & Pricing Assistant</h6>`;
+        if (pending.length === 0) {
+            html += `<p>All customer quotations have been processed! No pending quotes requiring pricing.</p>`;
+        } else {
+            html += `<p>Found <strong>${pending.length}</strong> pending quotation(s). Recommended contractor discount is <strong>4.5%</strong> on bulk orders above KES 50,000.</p>`;
+            html += pending.map(q => `
+                <div style="background:var(--bg-primary); padding:8px 10px; border-radius:6px; margin:6px 0; border:1px solid var(--border-color);">
+                    <strong>${q.id}</strong> — ${q.customerName} (${q.phone})<br>
+                    <small>${q.description || 'Items requested'}: ${q.items.length} item(s)</small><br>
+                    <button class="btn-primary" style="padding:2px 8px; font-size:0.72rem; margin-top:4px;" onclick="switchStaffTab('quotes'); selectQuotation('${q.id}')">Open & Quote</button>
+                </div>
+            `).join('');
+        }
+        pushCopilotMessage('bot', html);
+
+    } else if (action === 'briefing') {
+        let totalSales = 0;
+        orders.forEach(o => { if (o.status !== "Cancelled") totalSales += o.total; });
+        let stockVal = 0;
+        let lowStockCount = 0;
+        products.forEach(p => {
+            stockVal += p.salePrice * p.stockQty;
+            if (p.stockQty <= p.reorderLevel) lowStockCount++;
+        });
+
+        const pendingCallbacks = callbacks.filter(c => c.status === 'pending').length;
+        const pendingOrders = orders.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled').length;
+
+        const html = `
+            <h6>📊 Executive Daily Store Briefing</h6>
+            <div class="ai-calc-box">
+                • <strong>Gross Revenue:</strong> ${formatKES(totalSales)}<br>
+                • <strong>Total Inventory Valuation:</strong> ${formatKES(stockVal)}<br>
+                • <strong>Low Stock Items:</strong> ${lowStockCount} items at/below reorder threshold<br>
+                • <strong>Active Fulfillment Queue:</strong> ${pendingOrders} order(s)<br>
+                • <strong>Pending Helpline Callbacks:</strong> ${pendingCallbacks} customer(s) waiting
+            </div>
+            <p>System status: <span class="badge" style="background:var(--green-bg); color:var(--green);">100% OPERATIONAL</span></p>
+        `;
+        pushCopilotMessage('bot', html);
+    }
+}
+
+function sendStaffCopilotPrompt(text) {
+    pushCopilotMessage('user', text);
+    executeStaffCopilotCommand(text);
+}
+
+function handleStaffCopilotSubmit(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById("copilot-input-text");
+    const text = input ? input.value.trim() : "";
+    if (!text) return;
+    input.value = "";
+    sendStaffCopilotPrompt(text);
+}
+
+function pushCopilotMessage(sender, html) {
+    copilotFeed.push({ sender, html });
+    renderStaffCopilot();
+}
+
+function executeStaffCopilotCommand(text) {
+    const lower = text.toLowerCase();
+
+    // Command 1: Fast Natural Language POS Billing
+    if (lower.startsWith("bill ") || lower.includes("add to bill") || lower.includes("charge ") || lower.includes("pos ")) {
+        let billedItems = [];
+        products.forEach(p => {
+            const nameLower = p.name.toLowerCase();
+            const skuLower = p.sku.toLowerCase();
+            if (lower.includes(skuLower) || nameLower.split(" ").some(w => w.length > 3 && lower.includes(w))) {
+                // Find quantity before product
+                const regex = new RegExp(`(\\d+)\\s*(?:bags?|pcs?|pieces?|rolls?|tins?)?\\s*(?:of\\s*)?${p.name.split(" ")[0].toLowerCase()}`, 'i');
+                const match = text.match(regex);
+                const qty = match ? parseInt(match[1], 10) : 1;
+                
+                // Add to POS Cart
+                for (let i = 0; i < qty; i++) {
+                    addToPOSCart(p.sku);
+                }
+                billedItems.push(`• <strong>${qty}x</strong> ${p.name} (${formatKES(p.salePrice * qty)})`);
+            }
+        });
+
+        if (billedItems.length > 0) {
+            pushCopilotMessage('bot', `
+                <p>🛒 <strong>Successfully added to POS Billing Counter:</strong></p>
+                <div class="ai-calc-box">${billedItems.join("<br>")}</div>
+                <button class="btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="switchStaffTab('pos')">
+                    <i class="fa-solid fa-cash-register"></i> Go to POS Cart & Checkout
+                </button>
+            `);
+        } else {
+            pushCopilotMessage('bot', `<p>Could not recognize specific products in: "<em>${text}</em>". Try mentioning SKU or exact product name e.g. "Bill 5 bags of Tembo cement".</p>`);
+        }
+
+    // Command 2: Low Stock & Reorder
+    } else if (lower.includes("stock") || lower.includes("reorder") || lower.includes("inventory")) {
+        runCopilotQuickAction('reorder');
+
+    // Command 3: Summary / Briefing
+    } else if (lower.includes("summary") || lower.includes("sales") || lower.includes("valuation") || lower.includes("brief")) {
+        runCopilotQuickAction('briefing');
+
+    // Command 4: Quotations
+    } else if (lower.includes("quote") || lower.includes("quotation")) {
+        runCopilotQuickAction('quotes');
+
+    // Default Fallback
+    } else {
+        pushCopilotMessage('bot', `
+            <p>I processed your command: "<em>${text}</em>".</p>
+            <p>You can execute staff actions like:</p>
+            <div class="ai-calc-box">
+                • <code>Bill 5 bags Tembo cement</code> (Auto-fills POS)<br>
+                • <code>Which products are currently below reorder level?</code><br>
+                • <code>Summarize today's sales and stock valuation</code>
+            </div>
+        `);
+    }
+}
+
+
+// ==========================================================================
+// 16. INITIALIZATION ON PAGE LOAD
+// ==========================================================================
+
 window.onload = function() {
     renderCustomerCatalog();
     renderCustomerOrdersTracker();
     renderCustomerQuotesTracker();
     updateQuotesBadge();
+    initAI();
 };
+
